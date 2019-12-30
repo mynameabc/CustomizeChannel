@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mapper.ClientUserMapper">
+  <resultMap id="BaseResultMap" type="com.pojo.entity.ClientUser">
+    <id column="client_user_id" jdbcType="INTEGER" property="clientUserId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="number" jdbcType="INTEGER" property="number" />
+    <result column="status" jdbcType="CHAR" property="status" />
+    <result column="client_name" jdbcType="VARCHAR" property="clientName" />
+    <result column="client_status" jdbcType="CHAR" property="clientStatus" />
+    <result column="now_date" jdbcType="TIMESTAMP" property="nowDate" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    client_user_id, `name`, `password`, `number`, `status`, client_name, client_status, create_time
+  </sql>
+
+  <!-- number小于传进来的参数 -->
+  <select id="getClientUserForNumber" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from client_user where `number` &lt; #{number}
+  </select>
+
+  <select id="getClientUserForName" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from client_user where `name` = #{name} limit 1
+  </select>
+
+  <select id="getClientUserForWebSocketUserName" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from client_user where client_name = #{client_name} limit 1
+  </select>
+
+  <select id="getClientUserForUsableStatus" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from client_user where status = '0' limit 1
+  </select>
+
+</mapper>
