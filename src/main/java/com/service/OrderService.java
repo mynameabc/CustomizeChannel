@@ -75,8 +75,8 @@ public class OrderService {
             return new Result(false, "该平台订单已存在, 请不要重复下单.");
         }
 
-        //判断是否有可用链接
-        boolean isvalue = WebSocket.isExist();
+        //判断是否有可下单的WebSocket链接
+        boolean isvalue = WebSocket.isExistPlaceOrderLoginStatus();
         if (isvalue == false) {
             log.info("{}:没有可用联接, 请和管理员联系", orderDTO.getPlatformOrderNo());
             return new Result(false, "没有可用联接, 请和管理员联系!");

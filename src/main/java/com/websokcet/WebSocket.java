@@ -269,11 +269,16 @@ public class WebSocket {
     }
 
     /**
-     * 是否存在可用websocket联接
+     * 是否存在可下单的websocket联接
      * @return
      */
-    public static boolean isExist() {
-        return (websocketMap.size() >= 1) ? (true) : (false);
+    public static boolean isExistPlaceOrderLoginStatus() {
+
+        Map<String, Client> collect = websocketMap.entrySet().stream()
+                .filter(map -> map.getValue().getPlaceOrderLoginStatus() == 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        return (collect.size() >= 1) ? (true) : (false);
     }
 
     public static Client getWebSocketClientUserName() {
