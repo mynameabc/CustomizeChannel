@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.mapper.ClientUserMapper;
 import com.mapper.GoodsMapper;
-import com.mapper.OrderMapper;
+import com.mapper.PayOrderMapper;
 import com.pojo.customize.Client;
 import com.pojo.customize.OrderInfo;
 import com.pojo.dto.OrderDTO;
@@ -41,7 +41,7 @@ public class OrderService {
     private ClientUserMapper clientUserMapper;
 
     @Autowired
-    private OrderMapper orderMapper;
+    private PayOrderMapper payOrderMapper;
 
     @Autowired
     private GoodsMapper goodsMapper;
@@ -222,7 +222,11 @@ public class OrderService {
 
         JSONObject jsonObject = JSONObject.parseObject(resultJSONString);
 
+        String sign = jsonObject.getString("sign");                                 //加签后字符串
+        String goods_url = jsonObject.getString("goods_url");                       //商品URL
+        String channel = jsonObject.getString("channel");                           //充值渠道
         String user_name = jsonObject.getString("user_name");                       //下单小号
+        String password = jsonObject.getString("password");                         //下单小号密码
         String pay_type = jsonObject.getString("pay_type");                         //支付方式
         String amount = jsonObject.getString("amount");                             //订单金额
         String clientOrderStatus = jsonObject.getString("client_order_status");     //客户端执行状态 0:成功, 1:库存不足, 2:账号次数达到上限
@@ -253,7 +257,7 @@ public class OrderService {
             }
 
             //查看数据库是否存在该订单
-            PayOrder payOrder = orderMapper.getOrderForPlatformOrderNo(platformOrderNo);
+            PayOrder payOrder = payOrderMapper.getOrderForPlatformOrderNo(platformOrderNo);
             if (null != payOrder) {
                 log.error("订单号:{}---该平台订单号已在存!---DB", platformOrderNo);
                 return new Result(false, "该平台订单号已在存!");
@@ -286,22 +290,24 @@ public class OrderService {
                 payOrder = new PayOrder();
                 {
                     payOrder.setOrderId(idWorker.nextId());
+                    payOrder.setSign(sign);
+                    payOrder.setGoodsUrl(goods_url);
+                    payOrder.setChannel(channel);
                     payOrder.setPayType(pay_type);
-                    payOrder.setPayAmount(amount);
-                    payOrder.setOrderAmount(amount);
+                    payOrder.setAmount(amount);
                     payOrder.setPlatformOrderNo(platformOrderNo);
                     payOrder.setUserName(user_name);
+                    payOrder.setPassword(password);
                     payOrder.setClientOrderNo(client_order_no);
-                    payOrder.setPayOrderUrl(pay_url);
+                    payOrder.setPayUrl(pay_url);
                     payOrder.setClientOrderStatus(clientOrderStatus);
                     payOrder.setStatus(status);
                     payOrder.setNotifyUrl(notify_url);
-//                    payOrder.setNotifyPar(jsonObject.toJSONString());
                     payOrder.setNotifySendNotifyCount(0);
 //                    payOrder.setNotifyLastSendTime();
 //                    payOrder.setReturnResult("");
                     payOrder.setCreateTime(nowDate);
-                    orderMapper.insert(payOrder);
+                    payOrderMapper.insert(payOrder);
 
                     ClientUser clientUser = clientUserMapper.getClientUserForName(user_name);
                     if (null == clientUser) {
@@ -329,7 +335,7 @@ public class OrderService {
     public PayOrder getOrderForPlatformOrderNo(String platformOrderNo) {
         PayOrder payOrder = new PayOrder();
         payOrder.setPlatformOrderNo(platformOrderNo);
-        return orderMapper.selectOne(payOrder);
+        return payOrderMapper.selectOne(payOrder);
     }
 
     /**
@@ -359,7 +365,7 @@ public class OrderService {
         }
 
         //判断记录是否存在并且pay_order表状态是否是5
-        PayOrder payOrder = orderMapper.getOrderForPlatformOrderNo(platformOrderNo);
+        PayOrder payOrder = payOrderMapper.getOrderForPlatformOrderNo(platformOrderNo);
         if (null == payOrder) {
             log.info("{}:没查到该订单号---回调方法!", platformOrderNo);
             return new Result(false, platformOrderNo + "没查到该订单号!");
@@ -378,7 +384,7 @@ public class OrderService {
             try {
                 payOrder.setStatus("5");
                 payOrder.setUpdateTime(new Date());
-                count = orderMapper.updateByPrimaryKey(payOrder);
+                count = payOrderMapper.updateByPrimaryKey(payOrder);
             } catch (Exception e) {
                 String logInfo = platformOrderNo + ":订单号:{}---更新异常!" + "\n";
                 logInfo += "[异常信息]  - " + e.toString() + "\n";

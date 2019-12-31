@@ -11,6 +11,20 @@ public class SystemConfigService {
     @Autowired
     private SystemConfigMapper systemConfigMapper;
 
+    public void open() {
+        SystemConfig systemConfig = new SystemConfig();
+        systemConfig.setKey("payOrderStatus");
+        systemConfig = systemConfigMapper.selectOne(systemConfig);
+        systemConfig.setValue("1");
+    }
+
+    public void close() {
+        SystemConfig systemConfig = new SystemConfig();
+        systemConfig.setKey("payOrderStatus");
+        systemConfig = systemConfigMapper.selectOne(systemConfig);
+        systemConfig.setValue("0");
+    }
+
     /**
      * 下单开关是否开启
      * @return

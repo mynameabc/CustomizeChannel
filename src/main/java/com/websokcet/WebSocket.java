@@ -142,6 +142,13 @@ public class WebSocket {
             client.setPlaceOrderLoginStatus(1);
             websocketMap.put(userName, client);
         }
+
+        if (command.equals("7")) {
+
+            log.info("{}:开始确认收货!", userName);
+            String client_order_no = jsonObject.getString("client_order_no");
+            //更新payOrder表status状态为7
+        }
     }
 
     /**

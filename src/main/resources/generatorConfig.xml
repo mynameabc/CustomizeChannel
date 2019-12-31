@@ -3,7 +3,7 @@
         PUBLIC " -//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
         "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
 <generatorConfiguration>
-    <classPathEntry location="E:/repository/mysql/mysql-connector-java/8.0.18/mysql-connector-java-8.0.18.jar"/>
+    <classPathEntry location="G:/MavenRepository/mysql/mysql-connector-java/8.0.18/mysql-connector-java-8.0.18.jar"/>
     <context id="x" targetRuntime="MyBatis3" defaultModelType="flat">
 
         <property name="javaFileEncoding" value="UTF-8"/>
@@ -12,7 +12,7 @@
             <property name="suppressDate" value="false"/>
             <property name="suppressAllComments" value="true"/>
         </commentGenerator>
-        <jdbcConnection driverClass="com.mysql.jdbc.Driver" userId="root" password="111111" connectionURL="jdbc:mysql://localhost:3306/customize_channel?characterEncoding=utf8&amp;allowMultiQueries=true&amp;useSSL=false&amp;serverTimezone=GMT%2B8"/>
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver" userId="root" password="" connectionURL="jdbc:mysql://localhost:3306/customize_channel?characterEncoding=utf8&amp;allowMultiQueries=true&amp;useSSL=false&amp;serverTimezone=GMT%2B8"/>
 
         <!-- controller -->
         <!-- service -->
@@ -32,14 +32,8 @@
             <property name="enableSubPackages" value="false" />
         </sqlMapGenerator>
 
-        <!-- Mapper接口 -->
-        <javaClientGenerator type="XMLMAPPER" targetPackage="com.mapper" targetProject="../CustomizeChannel/src/main/java">
-            <!-- enableSubPackages:是否让schema作为包的后缀 -->
-            <property name="enableSubPackages" value="true" />
-        </javaClientGenerator>
-
         <!-- 表 -->
-        <table tableName="system_config" domainObjectName="SystemConfig" enableCountByExample="false" enableUpdateByExample="false"
+        <table tableName="pay_order" domainObjectName="PayOrder" enableCountByExample="false" enableUpdateByExample="false"
                enableDeleteByExample="false" enableSelectByExample="false"
                selectByExampleQueryId="false">
         </table>

@@ -31,8 +31,7 @@ public class NormalRoundRobin {
 		currentIndex = (currentIndex + 1) % totalServer;
 		return servers.get(currentIndex);
 	}
-	
-	
+
 	public static void main(String[] args) {
 		final NormalRoundRobin r = new NormalRoundRobin();
 		// 不带并发的轮询

@@ -2,7 +2,9 @@ package com.pojo.entity;
 
 import lombok.Data;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.Date;
 
 @Data
@@ -15,41 +17,47 @@ public class PayOrder implements java.io.Serializable {
     @Column(name = "order_id")
     private Long orderId;
 
-    @Column(name = "user_name")
-    private String userName;
-
-    @Column(name = "platform_order_no")
-    private String platformOrderNo;
-
-    @Column(name = "client_order_no")
-    private String clientOrderNo;
-
-    @Column(name = "order_amount")
-    private String orderAmount;
-
-    @Column(name = "pay_amount")
-    private String payAmount;
-
-    @Column(name = "pay_order_url")
-    private String payOrderUrl;
-
-    @Column(name = "client_order_status")
-    private String clientOrderStatus;
-
-    @Column(name = "status")
-    private String status;
+    @Column(name = "channel")
+    private String channel;
 
     @Column(name = "pay_type")
     private String payType;
 
+    @Column(name = "amount")
+    private String amount;
+
+    @Column(name = "platform_order_no")
+    private String platformOrderNo;
+
+    @Column(name = "client_order_status")
+    private String clientOrderStatus;
+
     @Column(name = "notify_url")
     private String notifyUrl;
 
-    @Column(name = "notify_par")
-    private String notifyPar;
+    @Column(name = "status")
+    private String status;
 
     @Column(name = "notify_send_notify_count")
     private Integer notifySendNotifyCount;
+
+    @Column(name = "goods_url")
+    private String goodsUrl;
+
+    @Column(name = "user_name")
+    private String userName;
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "client_order_no")
+    private String clientOrderNo;
+
+    @Column(name = "pay_url")
+    private String payUrl;
+
+    @Column(name = "sign")
+    private String sign;
 
     @Column(name = "notify_last_send_time")
     private Date notifyLastSendTime;
