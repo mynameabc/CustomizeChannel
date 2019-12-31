@@ -1,8 +1,11 @@
 package com.websokcet;
 
 import com.ClientUserHandler;
+import com.mapper.PayOrderMapper;
 import com.pojo.customize.Client;
 import com.pojo.entity.ClientUser;
+import com.pojo.entity.PayOrder;
+import com.service.OrderService;
 import com.utils.ApplicationContextRegister;
 import com.utils.WebSocketSendObject;
 import lombok.extern.slf4j.Slf4j;
@@ -147,7 +150,8 @@ public class WebSocket {
 
             log.info("{}:开始确认收货!", userName);
             String client_order_no = jsonObject.getString("client_order_no");
-            //更新payOrder表status状态为7
+            OrderService orderService = ApplicationContextRegister.getApplicationContext().getBean(OrderService.class);
+            orderService.update(client_order_no);
         }
     }
 

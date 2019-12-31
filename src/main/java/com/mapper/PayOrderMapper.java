@@ -12,5 +12,7 @@ public interface PayOrderMapper extends MyMapper<PayOrder> {
 
     List<PayOrder> getOrderForStatus(@Param("status")String status);
 
+    PayOrder getOrderForClientOrderNo(@Param("clientOrderNo")String clientOrderNo);
+
     void setNumberIni();
 }

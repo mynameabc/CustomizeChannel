@@ -32,18 +32,25 @@ public class TestQuartz extends QuartzJobBean {
      */
     @Override
     protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+
         log.info("quartz task : {}" , new Date());
 
-        //关闭系统下单开关
-        systemConfigService.close();
+        systemConfigService.close();          //关闭系统下单开关
 
         {
             //睡5分钟
         }
 
-        //设置client_user表的number为0
-        payOrderMapper.setNumberIni();
+        payOrderMapper.setNumberIni();        //设置client_user表的number为0
 
-        takeDeliveryGoodsService.doAction();    //调用收货
+        takeDeliveryGoodsService.doAction();  //发送收货信息
+
+        {
+            //睡5分钟
+        }
+
+        //确认收货完毕
+
+        systemConfigService.open();           //打开系统下单开关
     }
 }

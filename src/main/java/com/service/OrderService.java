@@ -419,4 +419,15 @@ public class OrderService {
     public Client userNamePollSelect() {
         return WebSocket.getWebSocketClientUserName();
     }
+
+    @Transactional
+    public void update(String clientOrderNo) {
+
+        PayOrder payOrder = payOrderMapper.getOrderForClientOrderNo(clientOrderNo);
+        if (null != payOrder) {
+            payOrder.setStatus("7");
+            payOrderMapper.updateByPrimaryKeySelective(payOrder);
+            log.info("{}:记录更新!", clientOrderNo);
+        }
+    }
 }
