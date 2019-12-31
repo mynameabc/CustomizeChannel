@@ -35,7 +35,7 @@ public class TestQuartz extends QuartzJobBean {
         log.info("quartz task : {}" , new Date());
 
         //关闭系统下单开关
-        systemConfigService.open();
+        systemConfigService.close();
 
         {
             //睡5分钟
