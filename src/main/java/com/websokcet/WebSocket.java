@@ -1,10 +1,9 @@
 package com.websokcet;
 
 import com.ClientUserHandler;
-import com.mapper.PayOrderMapper;
+import com.auxiliary.test.NormalRoundRobinWebSocketImpl;
 import com.pojo.customize.Client;
-import com.pojo.entity.ClientUser;
-import com.pojo.entity.PayOrder;
+import com.pojo.customize.ClientUserInfo;
 import com.service.OrderService;
 import com.utils.ApplicationContextRegister;
 import com.utils.WebSocketSendObject;
@@ -42,11 +41,7 @@ public class WebSocket {
     //根据userName来获取对应的WebSocket
     private static ConcurrentHashMap<String, Client> websocketMap = new ConcurrentHashMap<>();
 
-    private static ConcurrentHashMap<String, Integer> pollSelectValue = new ConcurrentHashMap<>();
-
-    public WebSocket() {
-        pollSelectValue.put("value", 0);
-    }
+    public static NormalRoundRobinWebSocketImpl normalRoundRobinWebSocketImpl;
 
     /**
      * 当建立链接的时候调用此方法
@@ -68,46 +63,58 @@ public class WebSocket {
             } else {
 
                 ClientUserHandler clientUserHandler = ApplicationContextRegister.getApplicationContext().getBean(ClientUserHandler.class);
-                ClientUser clientUser = clientUserHandler.againLogin(userName);
-                if (null != clientUser) {
+
+                //判断websocket客户端ID是否有绑定的小号, 是则不发登陆信息, 否则发
+                ClientUserInfo clientUserInfo = clientUserHandler.getClientUser(userName);
+                if (null != clientUserInfo) {
 
                     //把对象初始化下扔进 websocketMap
-                    {
-                        Client client = new Client();
-                        client.setWebSocket(this);
-                        client.setPlaceOrderLoginStatus(0);                         //未登陆
-                        client.setClientUserName(userName);                         //客户端连接标识
-                        client.setPlaceOrderName(clientUser.getName());             //下单小号
-                        client.setPlaceOrderPassword(clientUser.getPassword());     //下单密码
-                        websocketMap.put(userName, client);
-                    }
-
-                    //给客户端发送消息(下单小号和密码)
-                    {
-                        JSONObject jsonObject = WebSocketSendObject.sendObjectForJSONObject("1");
-                        jsonObject.put("user_name", clientUser.getName());            //下单小号
-                        jsonObject.put("password", clientUser.getPassword());             //下单小号密码
-                        websocketMap.get(userName).getWebSocket().session.getAsyncRemote().sendText(jsonObject.toJSONString());
-                    }
-
-                    addOnlineCount();
-                    log.info(userName + ":链接被建立!, 当前在线人数为:" + getOnlineCount() + "---下单小号:" + clientUser.getName());
-
-                } else {
-
                     Client client = new Client();
                     client.setWebSocket(this);
-                    client.setPlaceOrderLoginStatus(0);   //未登陆
-                    client.setClientUserName(userName);   //客户端连接标识
-                    client.setPlaceOrderName("");         //下单小号
-                    client.setPlaceOrderPassword("");     //下单密码
-                    websocketMap.put(userName, client);
+                    client.setClientUserName(userName);                         //客户端连接标识
+                    client.setPlaceOrderName(clientUserInfo.getClientUser().getName());             //下单小号
+                    client.setPlaceOrderPassword(clientUserInfo.getClientUser().getPassword());     //下单密码
+                    client.setPlaceOrderStatus(clientUserInfo.getPlaceOrderStatus());               //是否可以下单
 
-                    addOnlineCount();
-                    log.info(userName + ":链接被建立!, 当前在线人数为:" + getOnlineCount() + "---无下单小号分配:");
+                    //如果是新建的连接, 就发送消息
+                    if (clientUserInfo.getStatus() == 1) {
+
+                        log.info("{}----------------------------新连接!", userName);
+
+                        client.setPlaceOrderLoginStatus(0);                     //如果是新连接则未登陆
+                        websocketMap.put(userName, client);
+                        //给客户端发送消息(下单小号和密码)
+                        {
+                            JSONObject jsonObject = WebSocketSendObject.sendObjectForJSONObject("1");
+                            jsonObject.put("user_name", clientUserInfo.getClientUser().getName());            //下单小号
+                            jsonObject.put("password", clientUserInfo.getClientUser().getPassword());         //下单小号密码
+                            websocketMap.get(userName).getWebSocket().session.getAsyncRemote().sendText(jsonObject.toJSONString());
+                        }
+
+                        //建立联接
+                        {
+                            clientUserHandler.connect(userName, clientUserInfo.getClientUser().getName());
+                        }
+
+                    } else {
+
+                        log.info("{}----------------------------旧连接!", userName);
+                        websocketMap.put(userName, client);
+                        client.setPlaceOrderLoginStatus(1);                     //如果是旧连接则已登陆
+                    }
+
+                } else {
+                    log.info("没有小号分配了!");
                 }
+
+                addOnlineCount();
+                log.info("{}----------------------------新连接, 连接数:{}", userName, getOnlineCount());
             }
         }
+    }
+
+    public static Client getClientUser() {
+        return normalRoundRobinWebSocketImpl.round();
     }
 
     /**
@@ -144,12 +151,14 @@ public class WebSocket {
             Client client = websocketMap.get(userName);
             client.setPlaceOrderLoginStatus(1);
             websocketMap.put(userName, client);
+            ClientUserHandler clientUserHandler = ApplicationContextRegister.getApplicationContext().getBean(ClientUserHandler.class);
+            clientUserHandler.login(websocketMap.get(userName).getClientUserName());
         }
 
-        if (command.equals("7")) {
+        if (command.equals("6")) {
 
-            log.info("{}:开始确认收货!", userName);
             String client_order_no = jsonObject.getString("client_order_no");
+            log.info("{}:开始确认收货---订单号是:{}", userName, client_order_no);
             OrderService orderService = ApplicationContextRegister.getApplicationContext().getBean(OrderService.class);
             orderService.update(client_order_no);
         }
@@ -171,6 +180,14 @@ public class WebSocket {
     }
 
     /**
+     * 关闭单个联接
+     * @param userName
+     */
+    public void singleClose(String userName) {
+        OnClose(userName, null);
+    }
+
+    /**
      * 当出现异常时触发
      * @param userName
      * @param throwable
@@ -178,7 +195,6 @@ public class WebSocket {
      */
     @OnError
     public void OnError(@PathParam("userName") String userName, Throwable throwable, Session session) {
-
         log.info("出现异常!---{}", userName);
         OnClose(userName, session);
     }
@@ -195,57 +211,6 @@ public class WebSocket {
         } else {
             log.info("{}:该链接不存在!", toUserName);
         }
-    }
-
-    /**
-     * 通知websocket账号再登陆
-     * @param toUserName websocket账号
-     * @return
-     */
-    public static ClientUser againLogin(String toUserName) {
-
-        ClientUser clientUser = null;
-
-        Object lock = 0;
-        synchronized (lock) {
-
-            if (websocketMap.containsKey(toUserName)) {
-
-                ClientUserHandler clientUserHandler = ApplicationContextRegister.getApplicationContext().getBean(ClientUserHandler.class);
-                clientUser = clientUserHandler.againLogin(toUserName);
-                if (null != clientUser) {
-
-                    Client client = websocketMap.get(toUserName);
-                    client.setPlaceOrderLoginStatus(1);
-                    client.setPlaceOrderName(clientUser.getName());
-                    client.setPlaceOrderPassword(clientUser.getPassword());
-                    websocketMap.put(toUserName, client);
-
-                    //给客户端发送消息(下单小号和密码)
-                    {
-                        JSONObject jsonObject = WebSocketSendObject.sendObjectForJSONObject("1");
-                        jsonObject.put("user_name", clientUser.getName());            //下单小号
-                        jsonObject.put("password", clientUser.getPassword());         //下单小号密码
-                        log.info(jsonObject.toJSONString());
-                        websocketMap.get(toUserName).getWebSocket().session.getAsyncRemote().sendText(jsonObject.toJSONString());
-                    }
-
-                    log.info("{}再次登陆---新下单小号:{}",toUserName, clientUser.getName());
-                } else {
-
-                    Client client = websocketMap.get(toUserName);
-                    client.setPlaceOrderLoginStatus(0);
-                    client.setPlaceOrderName(clientUser.getName());
-                    client.setPlaceOrderPassword(clientUser.getPassword());
-                    websocketMap.put(toUserName, client);
-                }
-
-            } else {
-                log.info("没有找到:{}这个WebSocket链接!", toUserName);
-            }
-        }
-
-        return clientUser;
     }
 
     /**
@@ -279,17 +244,30 @@ public class WebSocket {
         WebSocket.onlineCount--;
     }
 
+    public static ConcurrentHashMap getWebsocketMap() {
+        return websocketMap;
+    }
+
+    public static Client getClient(String userName) {
+        return websocketMap.get(userName);
+    }
+
+    public static void setClient(Client client) {
+        websocketMap.put(client.getClientUserName(), client);
+    }
+
     /**
      * 是否存在可下单的websocket联接
      * @return
      */
-    public static boolean isExistPlaceOrderLoginStatus() {
+    public static Map getWebSocketUsablePlaceOrder() {
 
         Map<String, Client> collect = websocketMap.entrySet().stream()
                 .filter(map -> map.getValue().getPlaceOrderLoginStatus() == 1)
+                .filter(map -> map.getValue().getPlaceOrderStatus() == 1)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        return (collect.size() >= 1) ? (true) : (false);
+        return collect;
     }
 
     public static Client getWebSocketClientUserName() {

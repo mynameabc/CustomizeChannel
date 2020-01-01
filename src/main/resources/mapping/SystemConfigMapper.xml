@@ -3,13 +3,13 @@
 <mapper namespace="com.mapper.SystemConfigMapper">
   <resultMap id="BaseResultMap" type="com.pojo.entity.SystemConfig">
     <id column="config_id" jdbcType="INTEGER" property="configId" />
-    <result column="key" jdbcType="VARCHAR" property="key" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
     <result column="value" jdbcType="VARCHAR" property="value" />
     <result column="description" jdbcType="VARCHAR" property="description" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
   </resultMap>
   <sql id="Base_Column_List">
-    config_id, `key`, `value`, description, create_time
+    config_id, `name`, `value`, description, create_time
   </sql>
 
 </mapper>

@@ -31,8 +31,15 @@
 
 
     //--------------------------------- webSocket ----------------------------------------------
-    initSocket("16568285139");
+    initSocket("aaa");
+
     /*
+    initSocket("bbb");
+    initSocket("ccc");
+    initSocket("ddd");
+    initSocket("eee");
+    initSocket("fff");
+
     initSocket("16568285148");
     initSocket("16568285150");
     initSocket("16568285128");
@@ -70,7 +77,7 @@
 
         // 收到服务端消息
         webSocket.onmessage = function (msg) {
-            alert(msg.data);
+//            alert(msg.data);
             // 关闭连接
             webSocket.onclose();
             console.log(msg);
@@ -87,10 +94,10 @@
         };
 
         // 断线
-/*        webSocket.onclose = function () {
+        webSocket.onclose = function () {
 
             console.log("websocket断开连接");
-        };*/
+        };
     }
 
 

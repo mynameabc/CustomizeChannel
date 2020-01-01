@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.UUID;
@@ -30,8 +31,10 @@ public class OrderController {
      * @return
      */
     @RequestMapping(value = "setPayURL", method = RequestMethod.POST)
-    public Result setPayURL(String resultJSONString) {
-        return orderService.setPayURL(resultJSONString);
+    public Result setPayURL(HttpServletRequest request, String resultJSONString) {
+
+        String resultJSONString1 = request.getParameter("resultJSONString");
+        return orderService.setPayURL(resultJSONString1);
     }
 
     /**
@@ -53,6 +56,7 @@ public class OrderController {
 
         log.info("接收到的订单参数:{}", orderDTO.toString());
         String uuid = UUID.randomUUID().toString().replaceAll("-","");
+//        String uuid = "1";
         orderDTO.setPlatformOrderNo(uuid);
         return orderService.pay(orderDTO);
     }
@@ -62,9 +66,21 @@ public class OrderController {
      * @param resultJSONString
      */
     @RequestMapping(value = "notify_res", method = RequestMethod.POST)
-    public Result notify_res(String resultJSONString) {
+    public Result notify_res(HttpServletRequest request, String resultJSONString) {
         log.info("回调被启动!---值是:{}", resultJSONString);
-        return orderService.notify(resultJSONString);
+
+        String resultJSONString1 = request.getParameter("resultJSONString");
+        return orderService.notify(resultJSONString1);
+    }
+
+    /**
+     * 查询
+     * @param orderDTO
+     */
+    @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
+    public Result queryOrder(@RequestBody OrderDTO orderDTO) {
+        log.info("查询被启动!---值是:{}", orderDTO);
+        return orderService.queryOrder(orderDTO);
     }
 
     /**

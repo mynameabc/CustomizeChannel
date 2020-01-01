@@ -18,8 +18,8 @@ public class SystemConfig {
     @Column(name = "config_id")
     private Integer configId;
 
-    @Column(name = "key")
-    private String key;
+    @Column(name = "name")
+    private String name;
 
     @Column(name = "value")
     private String value;

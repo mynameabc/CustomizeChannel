@@ -1,10 +1,13 @@
 package com.auxiliary;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
- 
+
+@Component("xx")
 public class NormalRoundRobin {
 	
 	private List<Server> servers;
@@ -24,7 +27,7 @@ public class NormalRoundRobin {
 		totalServer = servers.size();
 		currentIndex = totalServer - 1;
 	}
- 
+
  
 	// 轮询
 	public Server round() {

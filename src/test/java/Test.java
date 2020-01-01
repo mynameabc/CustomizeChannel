@@ -1,6 +1,7 @@
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.auxiliary.test.NormalRoundRobinWebSocketImpl;
 import com.pojo.customize.Client;
 import com.pojo.customize.OrderInfo;
 import com.utils.HttpClientUtil;
@@ -14,6 +15,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -25,12 +28,21 @@ public class Test {
 
     public static void main(String args[]) {
 
+        System.out.println(0 % 0);
+/*
+        Test test = new Test();
+        for (int i = 0; i < 14; i++) {
+
+            test.test();
+        }
+*/
+/*
         Random random = new Random();
         for (int i = 0; i < 100; i++) {
             int i1 = random.nextInt(10);
             System.out.println(i1);
         }
-
+*/
 /*
         Client client = new Client();
         client.setWebSocket(null);

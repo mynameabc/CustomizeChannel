@@ -1,7 +1,9 @@
 package com.job;
 
+import com.mapper.ClientUserMapper;
 import com.mapper.PayOrderMapper;
 import com.mapper.SystemConfigMapper;
+import com.pojo.entity.ClientUser;
 import com.service.OrderService;
 import com.service.SystemConfigService;
 import com.service.TakeDeliveryGoodsService;
@@ -25,6 +27,9 @@ public class TestQuartz extends QuartzJobBean {
     @Autowired
     private PayOrderMapper payOrderMapper;
 
+    @Autowired
+    private ClientUserMapper clientUserMapper;
+
     /**
      * 执行定时任务
      * @param jobExecutionContext
@@ -34,14 +39,14 @@ public class TestQuartz extends QuartzJobBean {
     protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
 
         log.info("quartz task : {}" , new Date());
-
+/*
         systemConfigService.close();          //关闭系统下单开关
 
         {
             //睡5分钟
         }
 
-        payOrderMapper.setNumberIni();        //设置client_user表的number为0
+        clientUserMapper.setNumberIni();        //设置client_user表的number为0
 
         takeDeliveryGoodsService.doAction();  //发送收货信息
 
@@ -52,5 +57,6 @@ public class TestQuartz extends QuartzJobBean {
         //确认收货完毕
 
         systemConfigService.open();           //打开系统下单开关
+ */
     }
 }

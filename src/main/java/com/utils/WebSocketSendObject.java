@@ -25,6 +25,7 @@ public class WebSocketSendObject {
             params.put("client_order_status", "");  //客户端订单状态(0:成功, 1:没货, 2:账号次数达到上限)
             params.put("notify_url", "");           //回调地址
             params.put("sign", "");
+            params.put("client_socket_id", "");     //webSocket链接
         }
 
         return params;
@@ -48,6 +49,7 @@ public class WebSocketSendObject {
             params.put("client_order_status", "");  //客户端订单状态(0:成功, 1:没货, 2:账号次数达到上限)
             params.put("notify_url", "");           //回调地址
             params.put("sign", "");
+            params.put("client_socket_id", "");     //webSocket链接
         }
 
         return params;

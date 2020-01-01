@@ -37,4 +37,8 @@
     from client_user where status = '0' limit 1
   </select>
 
+  <update id="setNumberIni">
+    update client_user set `number` = 0
+  </update>
+
 </mapper>

@@ -3,6 +3,7 @@ package com.service;
 import com.ClientUserHandler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.auxiliary.RoundRobin;
 import com.mapper.ClientUserMapper;
 import com.mapper.GoodsMapper;
 import com.mapper.PayOrderMapper;
@@ -21,10 +22,12 @@ import communal.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -48,6 +51,9 @@ public class OrderService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private RoundRobin roundRobin;
 
     private String key = "52A1B74DDAFC4274992E51DDCDFCCD9F";
 
@@ -76,22 +82,19 @@ public class OrderService {
         }
 
         //判断是否有可下单的WebSocket链接
-        boolean isvalue = WebSocket.isExistPlaceOrderLoginStatus();
-        if (isvalue == false) {
+        Map clientMap = WebSocket.getWebSocketUsablePlaceOrder();
+        if (clientMap.size() <= 0) {
             log.info("{}:没有可用联接, 请和管理员联系", orderDTO.getPlatformOrderNo());
             return new Result(false, "没有可用联接, 请和管理员联系!");
         }
-/*
-        //再判断是否有可下单的小号
-        int orderNumberCount = 20;
-        List<ClientUser> clientUserList = clientUserMapper.getClientUserForNumber(orderNumberCount);
-        if (clientUserList.size() <= 0) {
-            log.info("{}:下单账号不足, 请和管理员联系!", orderDTO.getPlatformOrderNo());
-            return new Result(false, "下单账号不足, 请和管理员联系!");
-        }
-*/
+
         //轮询选出账号
-        Client client = this.userNamePollSelect();
+        List<Client> list = new ArrayList<>(clientMap.values());
+        list.get(roundRobin.get(list));
+
+        Client client = list.get(roundRobin.get(list));
+
+        log.info("WebSocket下单ID是:--------------------------------------------{}", client.getClientUserName());
 
         SortedMap<String, String> params = WebSocketSendObject.sendObjectForSortedMap("4");
 
@@ -234,6 +237,7 @@ public class OrderService {
         String client_order_no = jsonObject.getString("client_order_no");           //国美订单号
         String platformOrderNo = jsonObject.getString("platform_order_no");         //平台订单号
         String notify_url = jsonObject.getString("notify_url");                     //回调地址
+        String client_socket_id = jsonObject.getString("client_socket_id");         //socket链接ID
 
         try {
 
@@ -249,9 +253,37 @@ public class OrderService {
                     orderInfo.setClientOrderStatus("9");        //客户端状态返回空时给于一个状态
                 } else {
                     orderInfo.setClientOrderStatus(clientOrderStatus);
-                }
 
-                orderInfo.setPayUrl(pay_url);
+                    ClientUser clientUser = clientUserMapper.getClientUserForName(user_name);
+                    if (null == clientUser) {
+                        log.error("订单号:{}---该下单小号不存在!", platformOrderNo);
+                        return new Result(false, "该下单小号不存在!");
+                    }
+
+                    if (clientOrderStatus.equals("0")) {
+
+                        int number = clientUser.getNumber();
+                        clientUser.setNumber(++number);
+                        clientUserMapper.updateByPrimaryKeySelective(clientUser);
+
+                        //判断小号是否下满
+                        {
+                            int orderNumberCount = 20;
+                            if (number >= orderNumberCount) {
+
+                                //WebSocket里当前client对象的PlaceOrderStatus属性设成0(不可下单)
+                                Client client = WebSocket.getClient(clientUser.getClientName());
+                                client.setPlaceOrderStatus(0);
+                                WebSocket.setClient(client);
+
+                                //job跑client_user表的number设成0
+                                //WebSocket里client对象的PlaceOrderStatus属性全设成1
+                            }
+                        }
+
+                        orderInfo.setPayUrl(pay_url);
+                    }
+                }
 
                 redisTemplate.opsForValue().set(platformOrderNo, orderInfo);
             }
@@ -308,16 +340,6 @@ public class OrderService {
 //                    payOrder.setReturnResult("");
                     payOrder.setCreateTime(nowDate);
                     payOrderMapper.insert(payOrder);
-
-                    ClientUser clientUser = clientUserMapper.getClientUserForName(user_name);
-                    if (null == clientUser) {
-                        log.error("订单号:{}---该下单小号不存在!", platformOrderNo);
-                        return new Result(false, "该下单小号不存在!");
-                    }
-
-                    int number = clientUser.getNumber();
-                    clientUser.setNumber(++number);
-                    clientUserMapper.updateByPrimaryKeySelective(clientUser);
                 }
 
                 log.info("-------------------设置支付URL方法成功-------------------:" + clientOrderStatus);
@@ -338,6 +360,22 @@ public class OrderService {
         return payOrderMapper.selectOne(payOrder);
     }
 
+    public Result queryOrder(OrderDTO orderDTO) {
+
+        PayOrder payOrder = payOrderMapper.getOrderForPlatformOrderNo(orderDTO.getPlatformOrderNo());
+        if (null == payOrder) {
+            return new Result(false, "没找到这条订单!");
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("status", payOrder.getStatus());
+        jsonObject.put("platform_order_no", payOrder.getPlatformOrderNo());
+        jsonObject.put("channel", payOrder.getChannel());
+        jsonObject.put("pay_type", payOrder.getPayType());
+
+        return new Result(true, "查询成功!", jsonObject.toJSONString());
+    }
+
     /**
      * 通知成功回调
      * @param resultJSONString
@@ -350,19 +388,6 @@ public class OrderService {
         String user_name = jsonObject.getString("user_name");
         String notifyUrl = jsonObject.getString("notify_url");
         String platformOrderNo = jsonObject.getString("platform_order_no");
-
-        ClientUser clientUser = clientUserMapper.getClientUserForName(user_name);
-        int number = clientUser.getNumber();
-
-        //判断小号是否下满
-        {
-            int orderNumberCount = 20;
-            if (number >= orderNumberCount) {
-
-                //选出新的可用下单小号, 并让客户端重新登陆小号
-                WebSocket.againLogin(clientUser.getClientName());
-            }
-        }
 
         //判断记录是否存在并且pay_order表状态是否是5
         PayOrder payOrder = payOrderMapper.getOrderForPlatformOrderNo(platformOrderNo);
@@ -412,14 +437,6 @@ public class OrderService {
         return new Result(true, platformOrderNo + "通知收到!");
     }
 
-    /**
-     * 轮询选出账号
-     * @return
-     */
-    public Client userNamePollSelect() {
-        return WebSocket.getWebSocketClientUserName();
-    }
-
     @Transactional
     public void update(String clientOrderNo) {
 
@@ -430,4 +447,5 @@ public class OrderService {
             log.info("{}:记录更新!", clientOrderNo);
         }
     }
+
 }

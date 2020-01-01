@@ -46,9 +46,10 @@
     select <include refid="Base_Column_List"/>
     from pay_order where client_order_no = #{clientOrderNo}
   </select>
-
-  <update id="setNumberIni">
-    update pay_order set number = 0
-  </update>
+  
+  <select id="getOrderForUserName" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from pay_order where user_name = #{userName} and `status` = '5'
+  </select>
 
 </mapper>

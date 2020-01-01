@@ -15,4 +15,7 @@ public interface ClientUserMapper extends MyMapper<ClientUser> {
     ClientUser getClientUserForWebSocketUserName(@Param("client_name") String client_name);
 
     ClientUser getClientUserForUsableStatus();
+
+    void setNumberIni();
+
 }

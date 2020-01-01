@@ -13,14 +13,14 @@ public class SystemConfigService {
 
     public void open() {
         SystemConfig systemConfig = new SystemConfig();
-        systemConfig.setKey("payOrderStatus");
+        systemConfig.setName("payOrderStatus");
         systemConfig = systemConfigMapper.selectOne(systemConfig);
         systemConfig.setValue("1");
     }
 
     public void close() {
         SystemConfig systemConfig = new SystemConfig();
-        systemConfig.setKey("payOrderStatus");
+        systemConfig.setName("payOrderStatus");
         systemConfig = systemConfigMapper.selectOne(systemConfig);
         systemConfig.setValue("0");
     }
@@ -32,7 +32,7 @@ public class SystemConfigService {
     public boolean isOpen() {
 
         SystemConfig systemConfig = new SystemConfig();
-        systemConfig.setKey("payOrderStatus");
+        systemConfig.setName("payOrderStatus");
         systemConfig = systemConfigMapper.selectOne(systemConfig);
 
         if (null != systemConfig) {
