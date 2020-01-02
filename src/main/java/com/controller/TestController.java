@@ -7,6 +7,8 @@ import com.service.TakeDeliveryGoodsService;
 import com.websokcet.WebSocket;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,9 @@ import com.auxiliary.RoundRobin;
 @Api(tags="测试")
 @RestController
 public class TestController {
+
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Autowired
     private SystemConfigService systemConfigService;
@@ -95,6 +100,13 @@ public class TestController {
 
         systemConfigService.placeOrderOpen();           //打开系统下单开关
         log.info("关闭下单功能!");
+    }
+
+    @GetMapping(value = "test7")
+    public void test7() {
+
+        RBucket<String> keyObj = redissonClient.getBucket("k1");
+        keyObj.set("v1236");
     }
 }
 

@@ -13,17 +13,6 @@ spring:
       force: true
       enabled: true
       charset: UTF-8
-  datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    druid:
-      url: @datasource.url@
-      username: @datasource.username@
-      password: @datasource.password@
-      initial-size: @datasource.initial-size@
-      max-active: @datasource.max-active@
-      min-evictable-idle-time-millis: 100000
-      validation-query: select 1
   redis:
     database: 0
     host: @redis.ip@
@@ -35,6 +24,20 @@ spring:
         max-idle: @redis.max-idle@
         min-idle: @redis.min-idle@
         max-wait: @redis.max-wait@
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      url: @datasource.url@
+      username: @datasource.username@
+      password: @datasource.password@
+      initial-size: @datasource.initial-size@
+      max-active: @datasource.max-active@
+      min-evictable-idle-time-millis: 100000
+      validation-query: select 1
+
+    #dnsMonitoring: false
+
 #  rabbitmq:
 #    host: @rabbitmq.ip@
 #    port: 5672
