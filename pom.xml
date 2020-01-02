@@ -67,16 +67,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
+            <version>2.6.2</version>
         </dependency>
-
         <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.9.0</version>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>3.11.1</version>
         </dependency>
 
         <!-- MyBatis包 -->
@@ -189,7 +188,7 @@
                 <env>dev</env>
             </properties>
             <activation>
-                <activeByDefault>false</activeByDefault><!--默认启用的是dev环境配置-->
+                <activeByDefault>true</activeByDefault><!--默认启用的是dev环境配置-->
             </activation>
             <build>
                 <filters>
@@ -204,7 +203,7 @@
                 <env>test</env>
             </properties>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <filters>
