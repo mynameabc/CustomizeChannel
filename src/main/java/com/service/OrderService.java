@@ -412,8 +412,14 @@ public class OrderService {
             }
 
             SortedMap<String, String> params = new TreeMap<>();
-            params.put("command", "4");         //0:心跳, 1:登陆, 2:小号登陆失败, 3:小号登陆成功, 4:下单
-            params.put("channel", "");
+            params.put("command", jsonObject.getString("command"));         //0:心跳, 1:登陆, 2:小号登陆失败, 3:小号登陆成功, 4:下单
+            params.put("channel", jsonObject.getString("channel"));
+            params.put("pay_type", jsonObject.getString("pay_type"));
+            params.put("platform_order_no", jsonObject.getString("platform_order_no"));
+            params.put("amount", jsonObject.getString("amount"));
+            params.put("result", "OK");
+            String sign = SignUtil.sign(params, key);
+            params.put("sign", sign);
 
             //更新成功
             if (count >= 1) {
@@ -442,5 +448,4 @@ public class OrderService {
             log.info("{}:记录更新!", clientOrderNo);
         }
     }
-
 }

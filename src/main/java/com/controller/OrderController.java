@@ -53,11 +53,6 @@ public class OrderController {
         log.info("接收到的订单参数:{}", orderDTO.toString());
 
         //ip判断
-
-/*
-        String uuid = UUID.randomUUID().toString().replaceAll("-","");
-        orderDTO.setPlatformOrderNo(uuid);
-*/
         return orderService.pay(orderDTO);
     }
 

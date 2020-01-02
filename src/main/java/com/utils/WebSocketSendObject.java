@@ -6,7 +6,15 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class WebSocketSendObject {
-
+/*
+    0:心跳
+    1:登陆
+    2:登陆失败
+    3:登陆成功
+    4.下单
+    5.收货
+    6.确认收货
+*/
     public static SortedMap sendObjectForSortedMap(String command) {
 
         SortedMap<String, String> params = new TreeMap<>();
