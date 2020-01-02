@@ -28,7 +28,8 @@ public class Test {
 
     public static void main(String args[]) {
 
-        System.out.println(0 % 0);
+        String value = "";
+        System.out.println(StringUtils.isBlank(value));
 /*
         Test test = new Test();
         for (int i = 0; i < 14; i++) {
@@ -125,8 +126,8 @@ public class Test {
 */
 /*        String resultJSONString = HttpClientUtil.sendPostRaw(url, params, "UTF-8");
         System.out.println(resultJSONString);*/
-
+/*
         String result = HttpClientUtil.sendPostRaw("http://47.112.167.170/:8890/channel/xiayou_notify_res", null, "UTF-8");
-        System.out.println(result);
+        System.out.println(result);*/
     }
 }

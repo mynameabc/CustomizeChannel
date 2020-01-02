@@ -27,12 +27,11 @@ public class OrderController {
 
     /**
      * 设置支付地址
-     * @param resultJSONString
+     * @param request
      * @return
      */
     @RequestMapping(value = "setPayURL", method = RequestMethod.POST)
-    public Result setPayURL(HttpServletRequest request, String resultJSONString) {
-
+    public Result setPayURL(HttpServletRequest request) {
         String resultJSONString1 = request.getParameter("resultJSONString");
         return orderService.setPayURL(resultJSONString1);
     }
@@ -45,19 +44,20 @@ public class OrderController {
      */
     @PostMapping(value = "pay")
     public Result pay(@Valid @RequestBody OrderDTO orderDTO) {
-/*
+
         //下单开关
-        boolean isvalue = systemConfigService.isOpen();
-        if (isvalue == false) {
+        if (!systemConfigService.isOpen()) {
             return new Result(false, "系统下单开关被关闭, 请和管理员联系!");
         }
-*/
-        //ip判断
 
         log.info("接收到的订单参数:{}", orderDTO.toString());
+
+        //ip判断
+
+/*
         String uuid = UUID.randomUUID().toString().replaceAll("-","");
-//        String uuid = "1";
         orderDTO.setPlatformOrderNo(uuid);
+*/
         return orderService.pay(orderDTO);
     }
 
@@ -67,8 +67,8 @@ public class OrderController {
      */
     @RequestMapping(value = "notify_res", method = RequestMethod.POST)
     public Result notify_res(HttpServletRequest request, String resultJSONString) {
-        log.info("回调被启动!---值是:{}", resultJSONString);
 
+        log.info("回调被启动!---值是:{}", resultJSONString);
         String resultJSONString1 = request.getParameter("resultJSONString");
         return orderService.notify(resultJSONString1);
     }
@@ -91,11 +91,5 @@ public class OrderController {
     public String xiayou_notify_res(@RequestBody String resultJSONString) {
         log.info("{}---下游回调函数!", resultJSONString);
         return "success";
-    }
-
-    @RequestMapping(value = "t", method = RequestMethod.POST)
-    public String t(@RequestBody String resultJSONString) {
-        log.info("测试:{}", resultJSONString);
-        return resultJSONString;
     }
 }

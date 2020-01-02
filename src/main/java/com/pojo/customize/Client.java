@@ -24,7 +24,7 @@ public class Client {
 	/**
 	 * 前线登陆状态(0:未登陆, 1:登陆)
 	 */
-	private int placeOrderLoginStatus;
+	private int loginStatus;
 
 	/**
 	 * 是否还可以下单

@@ -22,12 +22,10 @@ import communal.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -36,9 +34,6 @@ import java.util.concurrent.TimeUnit;
 public class OrderService {
 
 /*    static Logger logger = LoggerFactory.getLogger(OrderService.class);*/
-
-    @Autowired
-    private ClientUserHandler clientUserHandler;
 
     @Autowired
     private ClientUserMapper clientUserMapper;
@@ -68,7 +63,7 @@ public class OrderService {
 
         //金额是否正确
         log.info("订单数据:{}", orderDTO);
-        Goods goods = goodsMapper.getGoodsForOrderAmount(orderDTO.getOrderAmount());
+        Goods goods = goodsMapper.getGoodsForOrderAmount(orderDTO.getAmount());
         if (null == goods) {
             log.info("{}:不支持该金额", orderDTO.getPlatformOrderNo());
             return new Result(false, "不支持该金额");
@@ -101,7 +96,7 @@ public class OrderService {
         {
             params.put("channel", orderDTO.getChannel());
             params.put("pay_type", orderDTO.getPayType());
-            params.put("amount", orderDTO.getOrderAmount());
+            params.put("amount", orderDTO.getAmount());
             params.put("platform_order_no", orderDTO.getPlatformOrderNo());
             params.put("goods_url", goods.getUrl());
             params.put("user_name", client.getPlaceOrderName());
@@ -123,7 +118,7 @@ public class OrderService {
         orderInfo.setPayUrl("N");
 
         try {
-            redisTemplate.opsForValue().set(redisPlatformOrderNoKey, orderInfo, 5, TimeUnit.MINUTES); //放入缓存, 时间为3分钟过期
+            redisTemplate.opsForValue().set(redisPlatformOrderNoKey, orderInfo, 2, TimeUnit.MINUTES); //放入缓存, 时间为2分钟过期
         } catch (Exception e) {
             String logInfo = orderDTO.getPlatformOrderNo() + ":redis存放异常!" + "\n";
             logInfo += "[异常信息]  - " + e.toString() + "\n";
@@ -159,7 +154,7 @@ public class OrderService {
         if (null != orderInfo) {
             if (!orderInfo.getPayUrl().equals("N")) {
                 redisTemplate.delete(redisPlatformOrderNoKey);
-                return new Result(true, orderInfo.getPayUrl());
+                return new Result(true, "成功!", orderInfo.getPayUrl());
             } else {
                 redisTemplate.delete(redisPlatformOrderNoKey);
                 return new Result(false, "请求超时!");

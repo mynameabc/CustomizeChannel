@@ -48,26 +48,26 @@ public class NormalRoundRobinImpl implements INormalRoundRobin {
         Client client = new Client();
         client.setPlaceOrderName("1");
         client.setPlaceOrderPassword("1");
-        client.setPlaceOrderLoginStatus(1);
+        client.setLoginStatus(1);
         client.setClientUserName("aaa");
         websocketMap.put("1", client);
 
         Client client2 = new Client();
         client2.setPlaceOrderName("2");
         client2.setPlaceOrderPassword("2");
-        client2.setPlaceOrderLoginStatus(1);
+        client2.setLoginStatus(1);
         client2.setClientUserName("bbb");
         websocketMap.put("2", client2);
 
         Client client3 = new Client();
         client3.setPlaceOrderName("3");
         client3.setPlaceOrderPassword("3");
-        client3.setPlaceOrderLoginStatus(1);
+        client3.setLoginStatus(1);
         client3.setClientUserName("ccc");
         websocketMap.put("3", client3);
 
         Map<String, Client> collect = websocketMap.entrySet().stream()
-                .filter(map -> map.getValue().getPlaceOrderLoginStatus() == 1)
+                .filter(map -> map.getValue().getLoginStatus() == 1)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         servers = new ArrayList<>(collect.values());

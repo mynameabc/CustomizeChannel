@@ -75,7 +75,7 @@ public class ClientUserHandler {
         //新取一个下单小号给WebSocket链接
         ClientUser _clientUser = clientUserMapper.getClientUserForUsableStatus();
         if (null != _clientUser) {
-            if (clientUser.getNumber() >= 20) {
+            if (_clientUser.getNumber() >= 20) {
                 clientUserInfo.setPlaceOrderStatus(0);
             } else {
                 clientUserInfo.setPlaceOrderStatus(1);

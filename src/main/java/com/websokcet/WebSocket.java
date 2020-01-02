@@ -79,9 +79,7 @@ public class WebSocket {
                     //如果是新建的连接, 就发送消息
                     if (clientUserInfo.getStatus() == 1) {
 
-                        log.info("{}----------------------------新连接!", userName);
-
-                        client.setPlaceOrderLoginStatus(0);                     //如果是新连接则未登陆
+                        client.setLoginStatus(0);                     //如果是新连接则未登陆
                         websocketMap.put(userName, client);
                         //给客户端发送消息(下单小号和密码)
                         {
@@ -96,19 +94,21 @@ public class WebSocket {
                             clientUserHandler.connect(userName, clientUserInfo.getClientUser().getName());
                         }
 
+                        addOnlineCount();
+                        log.info("{}----------------------------新连接, 连接数:{}", userName, getOnlineCount());
+
                     } else {
 
-                        log.info("{}----------------------------旧连接!", userName);
                         websocketMap.put(userName, client);
-                        client.setPlaceOrderLoginStatus(1);                     //如果是旧连接则已登陆
+                        client.setLoginStatus(1);                     //如果是旧连接则已登陆
+
+                        addOnlineCount();
+                        log.info("{}----------------------------旧连接, 连接数:{}", userName, getOnlineCount());
                     }
 
                 } else {
                     log.info("没有小号分配了!");
                 }
-
-                addOnlineCount();
-                log.info("{}----------------------------新连接, 连接数:{}", userName, getOnlineCount());
             }
         }
     }
@@ -149,7 +149,7 @@ public class WebSocket {
             log.info("{}:已登陆成功!", userName);
 
             Client client = websocketMap.get(userName);
-            client.setPlaceOrderLoginStatus(1);
+            client.setLoginStatus(1);
             websocketMap.put(userName, client);
             ClientUserHandler clientUserHandler = ApplicationContextRegister.getApplicationContext().getBean(ClientUserHandler.class);
             clientUserHandler.login(websocketMap.get(userName).getClientUserName());
@@ -175,7 +175,7 @@ public class WebSocket {
             clientUserHandler.removeRelation(userName);
             subOnlineCount();
             websocketMap.remove(userName);
-            log.info("有一连接关闭！当前在线人数为:" + getOnlineCount());
+            log.info("{}:连接关闭！当前在线人数为:", userName, getOnlineCount());
         }
     }
 
@@ -263,7 +263,7 @@ public class WebSocket {
     public static Map getWebSocketUsablePlaceOrder() {
 
         Map<String, Client> collect = websocketMap.entrySet().stream()
-                .filter(map -> map.getValue().getPlaceOrderLoginStatus() == 1)
+                .filter(map -> map.getValue().getLoginStatus() == 1)
                 .filter(map -> map.getValue().getPlaceOrderStatus() == 1)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -273,7 +273,7 @@ public class WebSocket {
     public static Client getWebSocketClientUserName() {
 
         List<Client> list = new ArrayList<>(websocketMap.values());
-        List<Client> tempList = list.stream().filter(Client->(Client.getPlaceOrderLoginStatus() == 1)).collect(Collectors.toList());
+        List<Client> tempList = list.stream().filter(Client->(Client.getLoginStatus() == 1)).collect(Collectors.toList());
 
         Random random = new Random();
         int index = random.nextInt(tempList.size());
