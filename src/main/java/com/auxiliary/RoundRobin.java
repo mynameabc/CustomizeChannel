@@ -70,8 +70,10 @@ public class RoundRobin {
             serRBucket = redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + _client.getPlaceOrderName());
             status = serRBucket.get();
             if (StringUtils.isBlank(status)) {  //未在忙
-                serRBucket.set("1", 1, TimeUnit.MINUTES);
+                serRBucket.set("1", 1, TimeUnit.MINUTES);   //让他忙
                 return _client;
+            } else {
+                continue;
             }
         }
 
