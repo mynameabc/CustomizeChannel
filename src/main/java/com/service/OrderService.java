@@ -359,6 +359,13 @@ public class OrderService {
         String notifyUrl = jsonObject.getString("notify_url");
         String platformOrderNo = jsonObject.getString("platform_order_no");
 
+        Map<String, String> parmasMap = (Map) jsonObject;
+        boolean isvalue = SignUtil.verifySign(parmasMap, key);
+        if (!isvalue) {
+            log.error("setPayURL方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
+            return new Result(false, "setPayURL参数错误!");
+        }
+
         //判断记录是否存在并且pay_order表状态是否是5
         PayOrder payOrder = payOrderMapper.getOrderForPlatformOrderNo(platformOrderNo);
         if (null == payOrder) {
