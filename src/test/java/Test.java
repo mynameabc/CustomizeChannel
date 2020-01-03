@@ -28,8 +28,19 @@ public class Test {
 
     public static void main(String args[]) {
 
-        String value = "";
-        System.out.println(StringUtils.isBlank(value));
+        String key = "52A1B74DDAFC4274992E51DDCDFCCD9F";
+        Map<String, String> parmasMap = new HashMap<>(6);
+        {
+            parmasMap.put("platformOrderNo", "17");
+            parmasMap.put("payType", "3");
+            parmasMap.put("amount", "6000");
+            parmasMap.put("channel", "GuoMei");
+            parmasMap.put("notifyUrl", "http://localhost:8890/channel/notify_res");
+            String sign = SignUtil.sign(parmasMap, key);
+            parmasMap.put("sign", sign);
+            boolean isvalue = SignUtil.verifySign(parmasMap, key);
+            System.out.println(isvalue);
+        }
 /*
         Test test = new Test();
         for (int i = 0; i < 14; i++) {

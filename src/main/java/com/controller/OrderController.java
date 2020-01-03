@@ -3,6 +3,7 @@ package com.controller;
 import com.pojo.dto.OrderDTO;
 import com.service.OrderService;
 import com.service.SystemConfigService;
+import com.utils.SignUtil;
 import communal.Result;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Api(tags="订单")
@@ -48,6 +50,23 @@ public class OrderController {
         //下单开关
         if (!systemConfigService.isOpen()) {
             return new Result(false, "系统下单开关被关闭, 请和管理员联系!");
+        }
+
+        String key = "52A1B74DDAFC4274992E51DDCDFCCD9F";
+        Map<String, String> parmasMap = new HashMap<>(6);
+        {
+            parmasMap.put("platformOrderNo", orderDTO.getPlatformOrderNo());
+            parmasMap.put("payType", orderDTO.getPayType());
+            parmasMap.put("amount", orderDTO.getAmount());
+            parmasMap.put("channel", orderDTO.getChannel());
+            parmasMap.put("notifyUrl", orderDTO.getNotifyUrl());
+            parmasMap.put("sign", orderDTO.getSign());
+        }
+
+        boolean isvalue = SignUtil.verifySign(parmasMap, key);
+        if (!isvalue) {
+            log.error("{}:该订单验签没通过!---{}", orderDTO.getPlatformOrderNo(), orderDTO.toString());
+            return new Result(false, "参数错误!");
         }
 
         log.info("接收到的订单参数:{}", orderDTO.toString());

@@ -13,17 +13,6 @@ spring:
       force: true
       enabled: true
       charset: UTF-8
-  redis:
-    database: 0
-    host: @redis.ip@
-    port: 6379
-    password: @redis.password@
-    lettuce:
-      pool:
-        max-active: @redis.max-active@
-        max-idle: @redis.max-idle@
-        min-idle: @redis.min-idle@
-        max-wait: @redis.max-wait@
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver

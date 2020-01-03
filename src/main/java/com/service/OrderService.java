@@ -1,9 +1,9 @@
 package com.service;
 
-import com.ClientUserHandler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.auxiliary.RoundRobin;
+import com.auxiliary.constant.ProjectConstant;
 import com.mapper.ClientUserMapper;
 import com.mapper.GoodsMapper;
 import com.mapper.PayOrderMapper;
@@ -21,11 +21,11 @@ import com.websokcet.WebSocket;
 import communal.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.data.redis.core.RedisTemplate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +45,7 @@ public class OrderService {
     private GoodsMapper goodsMapper;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedissonClient redissonClient;
 
     @Autowired
     private RoundRobin roundRobin;
@@ -109,16 +109,24 @@ public class OrderService {
 
         log.info("发送WebSocket请求给:{}", client.getClientUserName());
 
-        //发送WebSocket请求
-        WebSocket.sendMessage(client.getClientUserName(), JSON.toJSONString(params));
-
+        //分布式锁
+        /*
+        {
+            RLock lock = redisson.getLock(client.getClientUserName());
+            lock.lock(2, TimeUnit.MINUTES);             //两分钟 后自动释放锁
+        }
+        */
         String redisPlatformOrderNoKey = orderDTO.getPlatformOrderNo(); //以平台订单号为key
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setPlatformOrderNo(orderDTO.getPlatformOrderNo());
         orderInfo.setPayUrl("N");
 
+        //发送WebSocket请求
+        WebSocket.sendMessage(client.getClientUserName(), JSON.toJSONString(params));
+
         try {
-            redisTemplate.opsForValue().set(redisPlatformOrderNoKey, orderInfo, 2, TimeUnit.MINUTES); //放入缓存, 时间为2分钟过期
+            RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + redisPlatformOrderNoKey);
+            serRBucket.set(orderInfo, 30, TimeUnit.SECONDS);
         } catch (Exception e) {
             String logInfo = orderDTO.getPlatformOrderNo() + ":redis存放异常!" + "\n";
             logInfo += "[异常信息]  - " + e.toString() + "\n";
@@ -139,7 +147,9 @@ public class OrderService {
             } catch (Exception e) {}
 
             try {
-                orderInfo = (OrderInfo) redisTemplate.opsForValue().get(redisPlatformOrderNoKey);
+                RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + redisPlatformOrderNoKey);
+                orderInfo = serRBucket.get();
+
             } catch (Exception e) {
                 String logInfo = orderDTO.getPlatformOrderNo() + ":第" + index + "次redis取出异常!" + "\n";
                 logInfo += "[异常信息]  - " + e.toString() + "\n";
@@ -153,59 +163,19 @@ public class OrderService {
 
         if (null != orderInfo) {
             if (!orderInfo.getPayUrl().equals("N")) {
-                redisTemplate.delete(redisPlatformOrderNoKey);
+                RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + redisPlatformOrderNoKey);
+                serRBucket.delete();
                 return new Result(true, "成功!", orderInfo.getPayUrl());
             } else {
-                redisTemplate.delete(redisPlatformOrderNoKey);
+                RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + redisPlatformOrderNoKey);
+                serRBucket.delete();
                 return new Result(false, "请求超时!");
             }
         } else {
-            redisTemplate.delete(redisPlatformOrderNoKey);
+            RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + redisPlatformOrderNoKey);
+            serRBucket.delete();
             return new Result(false, "下单异常, 请和管理员联系!");
         }
-/*
-        payOrder = this.getOrderForPlatformOrderNo(orderDTO.getPlatformOrderNo());
-        if (null == payOrder) {
-            log.error("订单号:{} --------- payOrder记录不存在!", orderDTO.getPlatformOrderNo());
-            return new Result(false, "订单请求超时!");
-        } else {
-
-            String clientOrderStatus = payOrder.getClientOrderStatus();
-            switch (clientOrderStatus)
-            {
-                case "0":   //成功
-
-                    try {
-                        payOrder.setStatus("2");        //成功(支付链接有返回给调用方)
-                        payOrder.setUpdateTime(new Date());
-                        orderMapper.updateByPrimaryKey(payOrder);
-                        log.info("订单号:{} --------- orderInfo对象的ClientOrderStatus={}!", orderDTO.getPlatformOrderNo(), orderInfo.getClientOrderStatus());
-                    } catch (Exception e) {
-                        String logInfo = orderDTO.getPlatformOrderNo() + ":订单号:{}---记录更新异常!" + "\n";
-                        logInfo += "[异常信息]  - " + e.toString() + "\n";
-                        log.error(logInfo, orderDTO.getPlatformOrderNo());
-                    }
-
-                    params.remove("goods_url");
-                    params.remove("user_name");
-                    params.remove("password");
-                    params.remove("client_order_status");
-                    params.put("pay_url", payOrder.getPayOrderUrl());
-                    return new Result(true, "订单创建成功", params);
-                case "1":   //库存不足
-                    log.error("订单号:{}---库存不足!", orderDTO.getPlatformOrderNo());
-                    return new Result(false, "库存不足!");
-                case "2":   //账号次数达到上限
-                    log.error("订单号:{}---账号购买次数达到上限!", orderDTO.getPlatformOrderNo());
-                    return new Result(false, "账号购买次数达到上限!");
-                case "9":
-                    log.error("订单号:{}出现未知异常, 前线返回的客户端状态为空!", orderDTO.getPlatformOrderNo());
-                    return new Result(false, "订单超时!");
-                default:
-                    break;
-            }
-        }
-*/
     }
 
     /**
@@ -238,7 +208,9 @@ public class OrderService {
 
             //取出缓存对象判断是否存在
             {
-                OrderInfo orderInfo = (OrderInfo) redisTemplate.opsForValue().get(platformOrderNo);
+                RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + platformOrderNo);
+                OrderInfo orderInfo = serRBucket.get();
+
                 if (null == orderInfo) {
                     log.error("订单号:{}---该平台订单号不存在!---redis", platformOrderNo);
                     return new Result(false, "该平台订单号不存在");
@@ -280,7 +252,7 @@ public class OrderService {
                     }
                 }
 
-                redisTemplate.opsForValue().set(platformOrderNo, orderInfo);
+                serRBucket.set(orderInfo, 30, TimeUnit.SECONDS);
             }
 
             //查看数据库是否存在该订单
