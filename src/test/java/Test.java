@@ -7,6 +7,7 @@ import com.pojo.customize.OrderInfo;
 import com.utils.HttpClientUtil;
 import com.utils.SignUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -29,10 +30,11 @@ public class Test {
     public static void main(String args[]) {
 
         String key = "52A1B74DDAFC4274992E51DDCDFCCD9F";
+
         Map<String, String> parmasMap = new HashMap<>(6);
         {
-            parmasMap.put("platformOrderNo", "602001030121890742");
             parmasMap.put("payType", "3");
+            parmasMap.put("platformOrderNo", "962001030121890742");
             parmasMap.put("amount", "9000");
             parmasMap.put("channel", "GuoMei");
             parmasMap.put("notifyUrl", "http://47.75.188.136:8300/pay/guoMeiPlus/payNotify");
@@ -42,6 +44,29 @@ public class Test {
             boolean isvalue = SignUtil.verifySign(parmasMap, key);
             System.out.println(isvalue);
         }
+
+/*
+        parmasMap = new HashMap<>(6);
+        parmasMap.put("command", "4");
+        parmasMap.put("amount", "9000");
+        parmasMap.put("channel", "GuoMei");
+        parmasMap.put("password", "HUjunnan520");
+        parmasMap.put("pay_type", "3");
+        parmasMap.put("platform_order_no", "702001030121890742");
+        parmasMap.put("client_order_no", "12130427376");
+        parmasMap.put("goods_url", "http://item.m.gome.com.cn/product-A0006631091-pop8013099491.html");
+        parmasMap.put("user_name", "16568285148");
+        parmasMap.put("client_order_status", "0");
+        parmasMap.put("notify_url", "http://47.75.188.136:8300/pay/guoMeiPlus/payNotify");
+        parmasMap.put("key", "52A1B74DDAFC4274992E51DDCDFCCD9F");
+
+        String sign = SignUtil.sign(parmasMap, key);
+        parmasMap.put("sign", sign);
+//        log.info(sign);
+        boolean isvalue = SignUtil.verifySign(parmasMap, key);
+        System.out.println(isvalue);*/
+//        System.out.println(sign);
+
 /*
         Test test = new Test();
         for (int i = 0; i < 14; i++) {

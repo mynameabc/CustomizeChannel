@@ -15,10 +15,37 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class HttpClientUtil {
+
+    public static void main(String args[]) {
+
+        String key = "52A1B74DDAFC4274992E51DDCDFCCD9F";
+
+        Map<String, String> parmasMap = new HashMap<>(6);
+        {
+            parmasMap.put("payType", "3");
+            parmasMap.put("platformOrderNo", "172001030121890742");
+            parmasMap.put("amount", "9000");
+            parmasMap.put("channel", "GuoMei");
+            parmasMap.put("notifyUrl", "http://47.75.188.136:8300/pay/guoMeiPlus/payNotify");
+            String sign = SignUtil.sign(parmasMap, key);
+            parmasMap.put("sign", sign);
+//            boolean isvalue = SignUtil.verifySign(parmasMap, key);
+//            System.out.println(isvalue);
+        }
+
+        String result = HttpClientUtil.sendPostRaw("http://47.112.167.170:8890/channel/pay", parmasMap, "UTF-8");
+        System.out.println(result);
+
+
+        boolean isvalue = SignUtil.verifySign(parmasMap, key);
+        System.out.println(isvalue);
+
+    }
 
     /**
      * POST发送Http请求 (Raw方式)

@@ -5,24 +5,8 @@ package com.pojo.customize;
  */
 public class DistributeIdentity {
 
-    /**
-     * 下单小号登陆
-     * @param name
-     * @param password
-     * @return
-     */
-    public String login(String name, String password) {
+    public void test() {
 
-        return null;
-    }
 
-    /**
-     * 退出登陆
-     * @param userName
-     * @return
-     */
-    public String logout(String userName) {
-
-        return null;
     }
 }

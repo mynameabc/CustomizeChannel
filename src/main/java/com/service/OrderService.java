@@ -83,9 +83,12 @@ public class OrderService {
 
         //轮询选出账号
         List<Client> list = new ArrayList<>(clientMap.values());
-        list.get(roundRobin.get(list));
-
+//        Client client = roundRobin.getClient(list);
         Client client = list.get(roundRobin.get(list));
+        if (null == client) {
+            log.error("{}:没有可用下单小号!", orderDTO.getPlatformOrderNo());
+            return new Result(false, "没有可用账号!");
+        }
 
         log.info("WebSocket下单ID是:--------------------------------------------{}", client.getClientUserName());
 
@@ -102,32 +105,46 @@ public class OrderService {
             params.put("notify_url", orderDTO.getNotifyUrl());
         }
 
-        String sign = SignUtil.sign(params, key);   //加签
-        params.put("sign", sign);
+//        String sign = SignUtil.sign(params, key);   //加签
+//        params.put("sign", sign);
 
-        //发送WebSocket请求
-        WebSocket.sendMessage(client.getClientUserName(), JSON.toJSONString(params));
-        log.info("发送WebSocket请求给:{}", client.getClientUserName());
-
-        //分布式锁
-        /*
-        {
-            RLock lock = redisson.getLock(client.getClientUserName());
-            lock.lock(2, TimeUnit.MINUTES);             //两分钟 后自动释放锁
-        }
-        */
         String redisPlatformOrderNoKey = orderDTO.getPlatformOrderNo(); //以平台订单号为key
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setPlatformOrderNo(orderDTO.getPlatformOrderNo());
         orderInfo.setPayUrl("N");
 
-        try {
+        //判断下单小号是否在操作
+/*
+        Object lock = "1";
+        synchronized (lock) {   //只有少量可用小号, 但并发还是很大时怎么考虑
+
+            RBucket<String> serRBucket =
+                    redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + client.getClientUserName());
+            String clientUserNameStatus = serRBucket.get();
+            while (true) {
+
+                log.info("进入选号环节");
+                if (clientUserNameStatus.equals("1")) {
+                    log.info("clientUserNameStatus值是:1");
+                    client = list.get(roundRobin.get(list));    //再次轮询
+                    serRBucket = redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + client.getClientUserName());
+                    clientUserNameStatus = serRBucket.get();
+                } else {
+                    log.info("选中一个没被占用的下单小号:{}", client.getClientUserName());
+                    serRBucket.set("1", 1, TimeUnit.MINUTES);   //1分钟
+                    break;
+                }
+            }
+        }
+*/
+        //发送WebSocket请求
+        WebSocket.sendMessage(client.getClientUserName(), JSON.toJSONString(params));
+        log.info("发送WebSocket请求给:{}", client.getClientUserName());
+
+        //订单标识
+        {
             RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + redisPlatformOrderNoKey);
-            serRBucket.set(orderInfo, 30, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            String logInfo = orderDTO.getPlatformOrderNo() + ":redis存放异常!" + "\n";
-            logInfo += "[异常信息]  - " + e.toString() + "\n";
-            log.error(logInfo);
+            serRBucket.set(orderInfo, 1, TimeUnit.MINUTES);
         }
 
         log.info("开始监听:{}", orderDTO.getPlatformOrderNo());
@@ -143,14 +160,9 @@ public class OrderService {
                 Thread.sleep(sleep);
             } catch (Exception e) {}
 
-            try {
+            {
                 RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + redisPlatformOrderNoKey);
                 orderInfo = serRBucket.get();
-
-            } catch (Exception e) {
-                String logInfo = orderDTO.getPlatformOrderNo() + ":第" + index + "次redis取出异常!" + "\n";
-                logInfo += "[异常信息]  - " + e.toString() + "\n";
-                log.error(logInfo);
             }
 
             if (!StringUtils.isBlank(orderInfo.getClientOrderStatus())) {
@@ -201,6 +213,7 @@ public class OrderService {
         String client_socket_id = jsonObject.getString("client_socket_id");         //socket链接ID
 
         Map<String, String> parmasMap = (Map) jsonObject;
+        parmasMap.remove("pay_url");
         boolean isvalue = SignUtil.verifySign(parmasMap, key);
         if (!isvalue) {
             log.error("setPayURL方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
@@ -353,6 +366,8 @@ public class OrderService {
      */
     public Result notify(String resultJSONString) {
 
+        log.info("notify方法中---{}", resultJSONString);
+
         JSONObject jsonObject = JSONObject.parseObject(resultJSONString);
 
         String user_name = jsonObject.getString("user_name");
@@ -360,10 +375,11 @@ public class OrderService {
         String platformOrderNo = jsonObject.getString("platform_order_no");
 
         Map<String, String> parmasMap = (Map) jsonObject;
+        parmasMap.remove("pay_url");
         boolean isvalue = SignUtil.verifySign(parmasMap, key);
         if (!isvalue) {
-            log.error("setPayURL方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
-            return new Result(false, "setPayURL参数错误!");
+            log.error("notify方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
+            return new Result(false, "notify参数错误!");
         }
 
         //判断记录是否存在并且pay_order表状态是否是5
