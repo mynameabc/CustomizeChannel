@@ -37,10 +37,8 @@ public class RoundRobin {
             if (null == list) {return null;}
             if (list.size() <= 0) {return null;}
 
-            int index = get(list);
-            Client client = list.get(index);
-            if (null == client) {return null;}
-
+            return poll(list);
+/*
             String status = "";
             RBucket<String> serRBucket = null;
             for (Client _client : list) {
@@ -54,9 +52,30 @@ public class RoundRobin {
                     return _client;
                 }
             }
+ */
+        }
+    }
+
+    public Client poll(List<Client> list) {
+
+        int index = 0;
+        String status;
+        Client client = null;
+        RBucket<String> serRBucket = null;
+        for (Client _client : list) {
+
+            index = get(list);
+            client = list.get(index);
+
+            serRBucket = redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + _client.getPlaceOrderName());
+            status = serRBucket.get();
+            if (StringUtils.isBlank(status)) {  //未在忙
+                serRBucket.set("1", 1, TimeUnit.MINUTES);
+                return _client;
+            }
         }
 
-        return null;
+        return client;
     }
 
     public int get(List list) {
