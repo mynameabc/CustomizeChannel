@@ -31,13 +31,14 @@ public class Test {
         String key = "52A1B74DDAFC4274992E51DDCDFCCD9F";
         Map<String, String> parmasMap = new HashMap<>(6);
         {
-            parmasMap.put("platformOrderNo", "17");
+            parmasMap.put("platformOrderNo", "602001030121890742");
             parmasMap.put("payType", "3");
-            parmasMap.put("amount", "6000");
+            parmasMap.put("amount", "9000");
             parmasMap.put("channel", "GuoMei");
-            parmasMap.put("notifyUrl", "http://localhost:8890/channel/notify_res");
+            parmasMap.put("notifyUrl", "http://47.75.188.136:8300/pay/guoMeiPlus/payNotify");
             String sign = SignUtil.sign(parmasMap, key);
             parmasMap.put("sign", sign);
+            log.info(sign);
             boolean isvalue = SignUtil.verifySign(parmasMap, key);
             System.out.println(isvalue);
         }

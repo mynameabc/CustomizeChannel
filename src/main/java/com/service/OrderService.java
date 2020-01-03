@@ -59,8 +59,6 @@ public class OrderService {
      */
     public Result pay(OrderDTO orderDTO) {
 
-        //验签
-
         //金额是否正确
         log.info("订单数据:{}", orderDTO);
         Goods goods = goodsMapper.getGoodsForOrderAmount(orderDTO.getAmount());
@@ -107,6 +105,8 @@ public class OrderService {
         String sign = SignUtil.sign(params, key);   //加签
         params.put("sign", sign);
 
+        //发送WebSocket请求
+        WebSocket.sendMessage(client.getClientUserName(), JSON.toJSONString(params));
         log.info("发送WebSocket请求给:{}", client.getClientUserName());
 
         //分布式锁
@@ -120,9 +120,6 @@ public class OrderService {
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setPlatformOrderNo(orderDTO.getPlatformOrderNo());
         orderInfo.setPayUrl("N");
-
-        //发送WebSocket请求
-        WebSocket.sendMessage(client.getClientUserName(), JSON.toJSONString(params));
 
         try {
             RBucket<OrderInfo> serRBucket = redissonClient.getBucket(ProjectConstant.RedissonPayOrderKey + redisPlatformOrderNoKey);
@@ -189,7 +186,6 @@ public class OrderService {
         log.info("setPayURL:" + resultJSONString);
 
         JSONObject jsonObject = JSONObject.parseObject(resultJSONString);
-
         String sign = jsonObject.getString("sign");                                 //加签后字符串
         String goods_url = jsonObject.getString("goods_url");                       //商品URL
         String channel = jsonObject.getString("channel");                           //充值渠道
@@ -203,6 +199,13 @@ public class OrderService {
         String platformOrderNo = jsonObject.getString("platform_order_no");         //平台订单号
         String notify_url = jsonObject.getString("notify_url");                     //回调地址
         String client_socket_id = jsonObject.getString("client_socket_id");         //socket链接ID
+
+        Map<String, String> parmasMap = (Map) jsonObject;
+        boolean isvalue = SignUtil.verifySign(parmasMap, key);
+        if (!isvalue) {
+            log.error("setPayURL方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
+            return new Result(false, "setPayURL参数错误!");
+        }
 
         try {
 
@@ -386,8 +389,8 @@ public class OrderService {
             SortedMap<String, String> params = new TreeMap<>();
             params.put("command", jsonObject.getString("command"));         //0:心跳, 1:登陆, 2:小号登陆失败, 3:小号登陆成功, 4:下单
             params.put("channel", jsonObject.getString("channel"));
-            params.put("pay_type", jsonObject.getString("pay_type"));
-            params.put("platform_order_no", jsonObject.getString("platform_order_no"));
+            params.put("payType", jsonObject.getString("pay_type"));
+            params.put("platformOrderNo", jsonObject.getString("platform_order_no"));
             params.put("amount", jsonObject.getString("amount"));
             params.put("result", "OK");
             String sign = SignUtil.sign(params, key);

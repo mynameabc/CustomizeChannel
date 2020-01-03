@@ -44,7 +44,7 @@ public class TestController {
 
     @GetMapping(value = "test1")
     public void test1() {
-        takeDeliveryGoodsService.doAction();
+        WebSocket.getWebsocketMap().toString();
     }
 
     @GetMapping(value = "test2")
@@ -56,7 +56,7 @@ public class TestController {
     public String test3() {
         return WebSocket.getWebsocketMap().toString();
     }
-
+/*
     @GetMapping(value = "test4")
     public String test4() {
         return WebSocket.getClientUser().getClientUserName();
@@ -68,38 +68,10 @@ public class TestController {
         List<Client> list = new ArrayList<>(map.values());
         return list.get(roundRobin.get(list)).toString();
     }
-
+*/
     @GetMapping(value = "test6")
     public void test6() {
 
-        systemConfigService.placeOrderClose();          //关闭系统下单开关
-        log.info("关闭下单功能!");
-
-        {
-            //睡2分钟
-            try {
-                Thread.sleep(1000 * 120);
-            } catch (Exception e) {
-
-            }
-        }
-
-        clientUserMapper.setNumberIni();      //设置client_user表的number为0
-        takeDeliveryGoodsService.doAction();  //发送收货信息
-
-        {
-            //睡2分钟
-            try {
-                Thread.sleep(1000 * 120);
-            } catch (Exception e) {
-
-            }
-        }
-
-        //确认收货完毕
-
-        systemConfigService.placeOrderOpen();           //打开系统下单开关
-        log.info("关闭下单功能!");
     }
 
     @GetMapping(value = "test7")
