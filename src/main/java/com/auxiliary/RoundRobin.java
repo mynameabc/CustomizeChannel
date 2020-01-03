@@ -77,6 +77,14 @@ public class RoundRobin {
             }
         }
 
+        for (int index1 = 0; index1 < list.size(); index1++) {
+
+            index1 = get(list);
+            client = list.get(index1);
+
+
+        }
+
         return client;
     }
 
