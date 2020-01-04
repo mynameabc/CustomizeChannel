@@ -73,18 +73,17 @@ public class OrderService {
             log.info("{}:该平台订单已存在, 请不要重复下单.", orderDTO.getPlatformOrderNo());
             return new Result(false, "该平台订单已存在, 请不要重复下单.");
         }
-
+/*
         //判断是否有可下单的WebSocket链接
         Map clientMap = WebSocket.getWebSocketUsablePlaceOrder();
         if (clientMap.size() <= 0) {
             log.info("{}:没有可用联接, 请和管理员联系", orderDTO.getPlatformOrderNo());
             return new Result(false, "没有可用联接, 请和管理员联系!");
         }
-
+*/
         //轮询选出账号
-        List<Client> list = new ArrayList<>(clientMap.values());
-//        Client client = roundRobin.getClient(list);
-        Client client = list.get(roundRobin.get(list));
+        List<Client> list = WebSocket.getWebSocketUsablePlaceOrderList();
+        Client client = roundRobin.getClient(list);
         if (null == client) {
             log.error("{}:没有可用下单小号!", orderDTO.getPlatformOrderNo());
             return new Result(false, "没有可用账号!");
@@ -105,38 +104,11 @@ public class OrderService {
             params.put("notify_url", orderDTO.getNotifyUrl());
         }
 
-//        String sign = SignUtil.sign(params, key);   //加签
-//        params.put("sign", sign);
-
         String redisPlatformOrderNoKey = orderDTO.getPlatformOrderNo(); //以平台订单号为key
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setPlatformOrderNo(orderDTO.getPlatformOrderNo());
         orderInfo.setPayUrl("N");
 
-        //判断下单小号是否在操作
-/*
-        Object lock = "1";
-        synchronized (lock) {   //只有少量可用小号, 但并发还是很大时怎么考虑
-
-            RBucket<String> serRBucket =
-                    redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + client.getClientUserName());
-            String clientUserNameStatus = serRBucket.get();
-            while (true) {
-
-                log.info("进入选号环节");
-                if (clientUserNameStatus.equals("1")) {
-                    log.info("clientUserNameStatus值是:1");
-                    client = list.get(roundRobin.get(list));    //再次轮询
-                    serRBucket = redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + client.getClientUserName());
-                    clientUserNameStatus = serRBucket.get();
-                } else {
-                    log.info("选中一个没被占用的下单小号:{}", client.getClientUserName());
-                    serRBucket.set("1", 1, TimeUnit.MINUTES);   //1分钟
-                    break;
-                }
-            }
-        }
-*/
         //发送WebSocket请求
         WebSocket.sendMessage(client.getClientUserName(), JSON.toJSONString(params));
         log.info("发送WebSocket请求给:{}", client.getClientUserName());

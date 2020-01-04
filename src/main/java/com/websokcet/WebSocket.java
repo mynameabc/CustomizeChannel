@@ -79,7 +79,7 @@ public class WebSocket {
                     //如果是新建的连接, 就发送消息
                     if (clientUserInfo.getStatus() == 1) {
 
-                        client.setLoginStatus(0);                     //如果是新连接则未登陆
+                        client.setLoginStatus(1);                     //如果是新连接则未登陆
                         websocketMap.put(userName, client);
                         //给客户端发送消息(下单小号和密码)
                         {
@@ -98,10 +98,9 @@ public class WebSocket {
                         log.info("{}----------------------------新连接, 连接数:{}", userName, getOnlineCount());
 
                     } else {
-
                         websocketMap.put(userName, client);
                         client.setLoginStatus(1);                     //如果是旧连接则已登陆
-
+                        clientUserHandler.login(userName);            //把登陆状态更新到数据库
                         addOnlineCount();
                         log.info("{}----------------------------旧连接, 连接数:{}", userName, getOnlineCount());
                     }
@@ -268,6 +267,17 @@ public class WebSocket {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return collect;
+    }
+
+    public static List<Client> getWebSocketUsablePlaceOrderList() {
+
+        Map<String, Client> collect = websocketMap.entrySet().stream()
+                .filter(map -> map.getValue().getLoginStatus() == 1)
+                .filter(map -> map.getValue().getPlaceOrderStatus() == 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        List<Client> list = new ArrayList<>(collect.values());
+        return list;
     }
 
     public static Client getWebSocketClientUserName() {

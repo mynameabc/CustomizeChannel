@@ -34,7 +34,7 @@ public class Test {
         Map<String, String> parmasMap = new HashMap<>(6);
         {
             parmasMap.put("payType", "3");
-            parmasMap.put("platformOrderNo", "962001030121890742");
+            parmasMap.put("platformOrderNo", "972001030121890742");
             parmasMap.put("amount", "9000");
             parmasMap.put("channel", "GuoMei");
             parmasMap.put("notifyUrl", "http://47.75.188.136:8300/pay/guoMeiPlus/payNotify");

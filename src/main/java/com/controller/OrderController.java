@@ -15,6 +15,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Api(tags="订单")
@@ -70,6 +71,7 @@ public class OrderController {
         }
 
         log.info("接收到的订单参数:{}", orderDTO.toString());
+//        orderDTO.setPlatformOrderNo(UUID.randomUUID().toString().replaceAll("-",""));
 
         //ip判断
         return orderService.pay(orderDTO);

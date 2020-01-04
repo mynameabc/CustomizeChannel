@@ -23,69 +23,29 @@ public class RoundRobin {
 
     private static final String key = "roundRobin";
 
-    public void test() {
-
-        RBucket<String> serRBucket =
-                redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + "aaa");
-    }
-
     public Client getClient(List<Client> list) {
 
         Object lock = "1";
         synchronized (lock) {
 
-            if (null == list) {return null;}
-            if (list.size() <= 0) {return null;}
-
-            return poll(list);
-/*
-            String status = "";
+            String status;
+            Client client = null;
             RBucket<String> serRBucket = null;
-            for (Client _client : list) {
+            for (int index = 0; index < list.size(); index++) {
 
-                serRBucket = redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + _client.getPlaceOrderName());
+                client = list.get(index);
+                serRBucket = redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + client.getPlaceOrderName());
                 status = serRBucket.get();
-                if (status.equals("1")) {
-                    continue;
+                if (StringUtils.isBlank(status)) {
+                    serRBucket.set("1", 45, TimeUnit.SECONDS);   //改变状态, 保持45秒
+                    return client;
                 } else {
-                    serRBucket.set("1", 2, TimeUnit.MINUTES);
-                    return _client;
+                    continue;
                 }
             }
- */
+
+            return client;
         }
-    }
-
-    public Client poll(List<Client> list) {
-
-        int index = 0;
-        String status;
-        Client client = null;
-        RBucket<String> serRBucket = null;
-        for (Client _client : list) {
-
-            index = get(list);
-            client = list.get(index);
-
-            serRBucket = redissonClient.getBucket(ProjectConstant.redisClientUserNameKey + _client.getPlaceOrderName());
-            status = serRBucket.get();
-            if (StringUtils.isBlank(status)) {  //未在忙
-                serRBucket.set("1", 1, TimeUnit.MINUTES);   //让他忙
-                return _client;
-            } else {
-                continue;
-            }
-        }
-
-        for (int index1 = 0; index1 < list.size(); index1++) {
-
-            index1 = get(list);
-            client = list.get(index1);
-
-
-        }
-
-        return client;
     }
 
     public int get(List list) {
