@@ -44,7 +44,7 @@ public class RoundRobin {
                 }
             }
 
-            return client;
+            return null;
         }
     }
 

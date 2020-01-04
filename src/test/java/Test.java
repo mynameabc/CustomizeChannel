@@ -6,6 +6,7 @@ import com.pojo.customize.Client;
 import com.pojo.customize.OrderInfo;
 import com.utils.HttpClientUtil;
 import com.utils.SignUtil;
+import communal.util.MD5Util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +37,7 @@ public class Test {
             parmasMap.put("command", "4");
             parmasMap.put("channel", "GuoMei");
             parmasMap.put("payType", "3");
-            parmasMap.put("platformOrderNo", "972001030121890742");
+            parmasMap.put("platformOrderNo", "2819100401572263346");
             parmasMap.put("amount", "9000");
             parmasMap.put("result", "OK");
             String sign = SignUtil.sign(parmasMap, key);
@@ -46,6 +47,11 @@ public class Test {
             System.out.println(isvalue);
         }
 
+        String _temp = "amount=" + "9000" + "channel=" + "GuoMei" + "clientOrderStatus="
+                + "0" + "platformOrderNo=" + "2019100401572263346" + "key=" + key;
+        String _sign = MD5Util.MD5(_temp).toUpperCase();
+        System.out.println(_temp);
+        System.out.println(_sign);
 /*
         parmasMap = new HashMap<>(6);
         parmasMap.put("command", "4");

@@ -49,7 +49,7 @@ public class OrderController {
     public Result pay(@Valid @RequestBody OrderDTO orderDTO) {
 
         //下单开关
-        if (!systemConfigService.isOpen()) {
+        if (!systemConfigService.isPlaceOrderOpen()) {
             return new Result(false, "系统下单开关被关闭, 请和管理员联系!");
         }
 

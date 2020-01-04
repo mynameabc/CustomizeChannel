@@ -86,6 +86,7 @@ public class WebSocket {
                             JSONObject jsonObject = WebSocketSendObject.sendObjectForJSONObject("1");
                             jsonObject.put("user_name", clientUserInfo.getClientUser().getName());            //下单小号
                             jsonObject.put("password", clientUserInfo.getClientUser().getPassword());         //下单小号密码
+                            log.info("给---{}---发送登陆通知!", userName);
                             websocketMap.get(userName).getWebSocket().session.getAsyncRemote().sendText(jsonObject.toJSONString());
                         }
 
@@ -213,12 +214,25 @@ public class WebSocket {
     }
 
     /**
-     * 心跳
+     * 给客户端发送心跳
      * @param message
      * @throws IOException
      */
-    public synchronized void sendPing(String message) throws IOException {
+    public static synchronized void sendPing(String message) {
 
+        Iterator entries = websocketMap.entrySet().iterator();
+        while (entries.hasNext()) {
+
+            Map.Entry entry = (Map.Entry) entries.next();
+            websocketMap.get(entry.getKey()).getWebSocket().session.getAsyncRemote().sendText(message);
+            log.info("给---{}---发送心跳!", entry.getKey());
+            /*
+            try {
+                Thread.sleep(500);
+            } catch (Exception e) {
+
+            }*/
+        }
     }
 
     /**

@@ -1,8 +1,10 @@
 package com.job;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mapper.ClientUserMapper;
 import com.service.SystemConfigService;
 import com.service.TakeDeliveryGoodsService;
+import com.websokcet.WebSocket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class Scheduler {
+
+    private JSONObject jsonObject = new JSONObject();
 
     @Autowired
     private SystemConfigService systemConfigService;
@@ -21,14 +25,17 @@ public class Scheduler {
     @Autowired
     private ClientUserMapper clientUserMapper;
 
-/*
-
-    //每隔2秒执行一次
-    @Scheduled(fixedRate = 2000)
-    public void testTasks() {
-        System.out.println("定时任务执行时间：" + dateFormat.format(new Date()));
+    public Scheduler() {
+        jsonObject.put("command", "0");
     }
-*/
+
+    //每隔20秒执行一次
+    @Scheduled(fixedRate = 20000)
+    public void testTasks() {
+        if (systemConfigService.isHeartBeatOpen()) {
+            WebSocket.sendPing(jsonObject.toString());
+        }
+    }
 
     //每天24点执行 提醒收货job
     @Scheduled(cron = "0 0 00 ? * *")

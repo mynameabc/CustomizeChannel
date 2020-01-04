@@ -19,6 +19,7 @@ import com.utils.SnowflakeIdUtils;
 import com.utils.WebSocketSendObject;
 import com.websokcet.WebSocket;
 import communal.Result;
+import communal.util.MD5Util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RBucket;
@@ -186,13 +187,22 @@ public class OrderService {
         String notify_url = jsonObject.getString("notify_url");                     //回调地址
         String client_socket_id = jsonObject.getString("client_socket_id");         //socket链接ID
 
+        String _temp = "amount=" + amount + "channel=" + channel + "clientOrderStatus="
+                + clientOrderStatus + "platformOrderNo=" + platformOrderNo + "key=" + key;
+        String _sign = MD5Util.MD5(_temp).toUpperCase();
+        if (!_sign.equals(sign)) {
+            log.error("setPayURL方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
+            return new Result(false, "setPayURL参数错误!");
+        }
+
+        /*
         Map<String, String> parmasMap = (Map) jsonObject;
         parmasMap.remove("pay_url");
         boolean isvalue = SignUtil.verifySign(parmasMap, key);
         if (!isvalue) {
             log.error("setPayURL方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
             return new Result(false, "setPayURL参数错误!");
-        }
+        }*/
 
         try {
 
@@ -344,9 +354,18 @@ public class OrderService {
 
         JSONObject jsonObject = JSONObject.parseObject(resultJSONString);
 
-        String user_name = jsonObject.getString("user_name");
         String notifyUrl = jsonObject.getString("notify_url");
-        String platformOrderNo = jsonObject.getString("platform_order_no");
+        String sign = jsonObject.getString("sign");                                 //加签后字符串
+        String goods_url = jsonObject.getString("goods_url");                       //商品URL
+        String channel = jsonObject.getString("channel");                           //充值渠道
+        String user_name = jsonObject.getString("user_name");                       //下单小号
+        String password = jsonObject.getString("password");                         //下单小号密码
+        String pay_type = jsonObject.getString("pay_type");                         //支付方式
+        String amount = jsonObject.getString("amount");                             //订单金额
+        String clientOrderStatus = jsonObject.getString("client_order_status");     //客户端执行状态 0:成功, 1:库存不足, 2:账号次数达到上限
+        String pay_url = jsonObject.getString("pay_url");                           //支付地址
+        String client_order_no = jsonObject.getString("client_order_no");           //国美订单号
+        String platformOrderNo = jsonObject.getString("platform_order_no");         //平台订单号
 /*
         Map<String, String> parmasMap = (Map) jsonObject;
         parmasMap.remove("pay_url");
@@ -356,6 +375,15 @@ public class OrderService {
             return new Result(false, "notify参数错误!");
         }
 */
+        String _temp = "amount=" + amount + "channel=" + channel + "clientOrderStatus="
+                + clientOrderStatus + "platformOrderNo=" + platformOrderNo + "key=" + key;
+        String _sign = MD5Util.MD5(_temp).toUpperCase();
+        if (!_sign.equals(sign)) {
+            log.error("notify方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
+            return new Result(false, "notify参数错误!");
+        }
+
+/*
         SortedMap<String, String> params = new TreeMap<>();
         params.put("command", jsonObject.getString("command"));         //0:心跳, 1:登陆, 2:小号登陆失败, 3:小号登陆成功, 4:下单
         params.put("channel", jsonObject.getString("channel"));
@@ -376,7 +404,8 @@ public class OrderService {
                 log.info("-------------------{}:订单号发送给下游回调的反回值:{}-------------------", platformOrderNo, result);
             }
         }.start();
-/*
+        */
+
         //判断记录是否存在并且pay_order表状态是否是5
         PayOrder payOrder = payOrderMapper.getOrderForPlatformOrderNo(platformOrderNo);
         if (null == payOrder) {
@@ -411,25 +440,22 @@ public class OrderService {
             params.put("platformOrderNo", jsonObject.getString("platform_order_no"));
             params.put("amount", jsonObject.getString("amount"));
             params.put("result", "OK");
-            String sign = SignUtil.sign(params, key);
-            params.put("sign", sign);
+            String xsign = SignUtil.sign(params, key);
+            params.put("sign", xsign);
 
             log.info("{}:发送给下游的参数:{}", params.get("platformOrderNo"), params);
-            String notifyUrl1 = "http://localhost:8890/channel/xiayou_notify_res";
+//            String notifyUrl1 = "http://localhost:8890/channel/xiayou_notify_res";
 
             //更新成功
             if (count >= 1) {
                 new Thread() {
                     public void run(){
-                        String result = HttpClientUtil.sendPostRaw(notifyUrl1, params, "UTF-8");
+                        String result = HttpClientUtil.sendPostRaw(notifyUrl, params, "UTF-8");
                         log.info("-------------------{}:订单号发送给下游回调的反回值:{}-------------------", platformOrderNo, result);
                     }
                 }.start();
             }
         }
-*/
-        log.info("-------------------{}订单号收到通知!-------------------", platformOrderNo);
-        log.info("-------------------{}订单号回调通知参数-------------------", jsonObject);
 
         return new Result(true, platformOrderNo + "通知收到!");
     }

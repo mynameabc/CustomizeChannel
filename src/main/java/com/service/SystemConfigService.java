@@ -18,6 +18,7 @@ public class SystemConfigService {
     private final static String privateKey = "sysconfig:privateKey";            //私钥
     private final static String superiorLimit = "sysconfig:superiorLimit";      //小号每日下单量
     private final static String payOrderStatus = "sysconfig:payOrderStatus";    //平台下单开关 0:关, 1:开
+    private final static String heartBeatStatus = "sysconfig:heartBeatStatus";  //平台心跳开关 0:关, 1:开
 
     /**
      * 开启下单开关
@@ -39,11 +40,24 @@ public class SystemConfigService {
      * 下单开关是否开启 (true:开, false:关)
      * @return
      */
-    public boolean isOpen() {
+    public boolean isPlaceOrderOpen() {
         String value = stringRedisTemplate.opsForValue().get(payOrderStatus);
         if (StringUtils.isBlank(value)) {
             value = systemConfigMapper.isOpen();
             stringRedisTemplate.opsForValue().set(payOrderStatus, value);
+        }
+        return (value.equals("1")) ? (true) : (false);
+    }
+
+    /**
+     * 下单开关是否开启 (true:开, false:关)
+     * @return
+     */
+    public boolean isHeartBeatOpen() {
+        String value = stringRedisTemplate.opsForValue().get(heartBeatStatus);
+        if (StringUtils.isBlank(value)) {
+            value = systemConfigMapper.isOpen();
+            stringRedisTemplate.opsForValue().set(heartBeatStatus, value);
         }
         return (value.equals("1")) ? (true) : (false);
     }
