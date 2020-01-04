@@ -26,6 +26,8 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -345,7 +347,7 @@ public class OrderService {
         String user_name = jsonObject.getString("user_name");
         String notifyUrl = jsonObject.getString("notify_url");
         String platformOrderNo = jsonObject.getString("platform_order_no");
-
+/*
         Map<String, String> parmasMap = (Map) jsonObject;
         parmasMap.remove("pay_url");
         boolean isvalue = SignUtil.verifySign(parmasMap, key);
@@ -353,7 +355,28 @@ public class OrderService {
             log.error("notify方法中---{}:该订单验签没通过!---{}", platformOrderNo, jsonObject.toString());
             return new Result(false, "notify参数错误!");
         }
+*/
+        SortedMap<String, String> params = new TreeMap<>();
+        params.put("command", jsonObject.getString("command"));         //0:心跳, 1:登陆, 2:小号登陆失败, 3:小号登陆成功, 4:下单
+        params.put("channel", jsonObject.getString("channel"));
+        params.put("payType", jsonObject.getString("pay_type"));
+        params.put("platformOrderNo", jsonObject.getString("platform_order_no"));
+        params.put("amount", jsonObject.getString("amount"));
+        params.put("result", "OK");
+        String sign = SignUtil.sign(params, key);
+        params.put("sign", sign);
 
+        log.info("{}:发送给下游的参数:{}", params.get("platformOrderNo"), params);
+        String notifyUrl1 = "http://localhost:8890/channel/xiayou_notify_res";
+
+        //更新成功
+        new Thread() {
+            public void run(){
+                String result = HttpClientUtil.sendPostRaw(notifyUrl1, params, "UTF-8");
+                log.info("-------------------{}:订单号发送给下游回调的反回值:{}-------------------", platformOrderNo, result);
+            }
+        }.start();
+/*
         //判断记录是否存在并且pay_order表状态是否是5
         PayOrder payOrder = payOrderMapper.getOrderForPlatformOrderNo(platformOrderNo);
         if (null == payOrder) {
@@ -391,21 +414,51 @@ public class OrderService {
             String sign = SignUtil.sign(params, key);
             params.put("sign", sign);
 
+            log.info("{}:发送给下游的参数:{}", params.get("platformOrderNo"), params);
+            String notifyUrl1 = "http://localhost:8890/channel/xiayou_notify_res";
+
             //更新成功
             if (count >= 1) {
                 new Thread() {
                     public void run(){
-                        String result = HttpClientUtil.sendPostRaw(notifyUrl, params, "UTF-8");
+                        String result = HttpClientUtil.sendPostRaw(notifyUrl1, params, "UTF-8");
                         log.info("-------------------{}:订单号发送给下游回调的反回值:{}-------------------", platformOrderNo, result);
                     }
                 }.start();
             }
         }
-
+*/
         log.info("-------------------{}订单号收到通知!-------------------", platformOrderNo);
         log.info("-------------------{}订单号回调通知参数-------------------", jsonObject);
 
         return new Result(true, platformOrderNo + "通知收到!");
+    }
+
+    public String xiayou_notify_res(String resultJSONString) {
+
+        JSONObject jsonObject = JSONObject.parseObject(resultJSONString);
+
+        Map<String, String> parmasMap = new HashMap<>(6);
+        parmasMap.put("command", jsonObject.getString("command"));
+        parmasMap.put("channel", jsonObject.getString("channel"));
+        parmasMap.put("payType", jsonObject.getString("payType"));
+        parmasMap.put("platformOrderNo", jsonObject.getString("platformOrderNo"));
+        parmasMap.put("amount", jsonObject.getString("amount"));
+        parmasMap.put("result", jsonObject.getString("result"));
+        parmasMap.put("sign", jsonObject.getString("sign"));
+
+        boolean isvalue = SignUtil.verifySign(parmasMap, key);
+        if (!isvalue) {
+            log.info("结果错误:fail");
+            return "fail";
+        }
+
+        if (jsonObject.getString("result").equals("OK")) {
+            log.info("结果正确:success");
+            return "success";
+        }
+
+        return null;
     }
 
     @Transactional

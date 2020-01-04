@@ -79,7 +79,7 @@ public class WebSocket {
                     //如果是新建的连接, 就发送消息
                     if (clientUserInfo.getStatus() == 1) {
 
-                        client.setLoginStatus(1);                     //如果是新连接则未登陆
+                        client.setLoginStatus(0);                     //如果是新连接则未登陆
                         websocketMap.put(userName, client);
                         //给客户端发送消息(下单小号和密码)
                         {

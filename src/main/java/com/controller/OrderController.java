@@ -105,7 +105,6 @@ public class OrderController {
      */
     @RequestMapping(value = "xiayou_notify_res", method = RequestMethod.POST)
     public String xiayou_notify_res(@RequestBody String resultJSONString) {
-        log.info("{}---下游回调函数!", resultJSONString);
-        return "success";
+        return orderService.xiayou_notify_res(resultJSONString);
     }
 }

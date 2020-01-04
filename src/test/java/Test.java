@@ -33,11 +33,12 @@ public class Test {
 
         Map<String, String> parmasMap = new HashMap<>(6);
         {
+            parmasMap.put("command", "4");
+            parmasMap.put("channel", "GuoMei");
             parmasMap.put("payType", "3");
             parmasMap.put("platformOrderNo", "972001030121890742");
             parmasMap.put("amount", "9000");
-            parmasMap.put("channel", "GuoMei");
-            parmasMap.put("notifyUrl", "http://47.75.188.136:8300/pay/guoMeiPlus/payNotify");
+            parmasMap.put("result", "OK");
             String sign = SignUtil.sign(parmasMap, key);
             parmasMap.put("sign", sign);
             log.info(sign);
