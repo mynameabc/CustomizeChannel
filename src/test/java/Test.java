@@ -38,8 +38,9 @@ public class Test {
             parmasMap.put("channel", "GuoMei");
             parmasMap.put("payType", "3");
             parmasMap.put("platformOrderNo", "2819100401572263346");
+            parmasMap.put("notifyUrl", "http://www.baidu.com/notify_res");
             parmasMap.put("amount", "9000");
-            parmasMap.put("result", "OK");
+//            parmasMap.put("result", "OK");
             String sign = SignUtil.sign(parmasMap, key);
             parmasMap.put("sign", sign);
             log.info(sign);

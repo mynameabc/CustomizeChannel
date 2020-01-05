@@ -1,12 +1,14 @@
 package com.controller;
 
+import com.auxiliary.constant.ProjectConstant;
 import com.pojo.dto.OrderDTO;
 import com.service.OrderService;
 import com.service.SystemConfigService;
 import com.utils.SignUtil;
 import communal.Result;
 import io.swagger.annotations.Api;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,10 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
 @Api(tags="订单")
 @RestController
 public class OrderController {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     @Autowired
     private OrderService orderService;
@@ -49,7 +52,7 @@ public class OrderController {
     public Result pay(@Valid @RequestBody OrderDTO orderDTO) {
 
         //下单开关
-        if (!systemConfigService.isPlaceOrderOpen()) {
+        if (!systemConfigService.isTrue(ProjectConstant.payOrderStatus)) {
             return new Result(false, "系统下单开关被关闭, 请和管理员联系!");
         }
 
@@ -66,11 +69,11 @@ public class OrderController {
 
         boolean isvalue = SignUtil.verifySign(parmasMap, key);
         if (!isvalue) {
-            log.error("{}:该订单验签没通过!---{}", orderDTO.getPlatformOrderNo(), orderDTO.toString());
-            return new Result(false, "参数错误!");
+            logger.warn("{}:该订单验签没通过!---{}", orderDTO.getPlatformOrderNo(), orderDTO.toString());
+            return new Result(false, "该订单验签没通过!");
         }
 
-        log.info("接收到的订单参数:{}", orderDTO.toString());
+        logger.info("接收到的订单参数:{}", orderDTO.toString());
 //        orderDTO.setPlatformOrderNo(UUID.randomUUID().toString().replaceAll("-",""));
 
         //ip判断
@@ -84,7 +87,7 @@ public class OrderController {
     @RequestMapping(value = "notify_res", method = RequestMethod.POST)
     public Result notify_res(HttpServletRequest request, String resultJSONString) {
 
-        log.info("回调被启动!---值是:{}", resultJSONString);
+        logger.info("回调被启动!---值是:{}", resultJSONString);
         String resultJSONString1 = request.getParameter("resultJSONString");
         return orderService.notify(resultJSONString1);
     }
@@ -95,7 +98,7 @@ public class OrderController {
      */
     @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
     public Result queryOrder(@RequestBody OrderDTO orderDTO) {
-        log.info("查询被启动!---值是:{}", orderDTO);
+        logger.info("查询被启动!---值是:{}", orderDTO);
         return orderService.queryOrder(orderDTO);
     }
 

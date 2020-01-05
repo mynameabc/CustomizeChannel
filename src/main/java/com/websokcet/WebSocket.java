@@ -54,6 +54,10 @@ public class WebSocket {
         this.session = session;
         this.userName = userName;
 
+        int maxSize = 200 * 1024;
+        this.session.setMaxBinaryMessageBufferSize(maxSize);    // 可以缓冲的传入二进制消息的最大长度
+        this.session.setMaxTextMessageBufferSize(maxSize);      // 可以缓冲的传入文本消息的最大长度
+
         Object lock = 0;
         synchronized (lock) {
 
@@ -116,6 +120,8 @@ public class WebSocket {
     public static Client getClientUser() {
         return normalRoundRobinWebSocketImpl.round();
     }
+
+    public static void onAllClose() {}
 
     /**
      * 用来接收客户端发来的消息, 这个地方应该根据自己的实际业务需求, 来决定到底写什么
@@ -195,7 +201,7 @@ public class WebSocket {
      */
     @OnError
     public void OnError(@PathParam("userName") String userName, Throwable throwable, Session session) {
-        log.info("出现异常!---{}", userName);
+        log.info("账号:{} --- 出现异常:---{}", userName, throwable.getMessage());
         OnClose(userName, session);
     }
 
@@ -214,6 +220,7 @@ public class WebSocket {
     }
 
     /**
+     * //考虑用并发搞
      * 给客户端发送心跳
      * @param message
      * @throws IOException
@@ -226,12 +233,6 @@ public class WebSocket {
             Map.Entry entry = (Map.Entry) entries.next();
             websocketMap.get(entry.getKey()).getWebSocket().session.getAsyncRemote().sendText(message);
             log.info("给---{}---发送心跳!", entry.getKey());
-            /*
-            try {
-                Thread.sleep(500);
-            } catch (Exception e) {
-
-            }*/
         }
     }
 

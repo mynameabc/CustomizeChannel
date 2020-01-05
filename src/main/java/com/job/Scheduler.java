@@ -1,6 +1,7 @@
 package com.job;
 
 import com.alibaba.fastjson.JSONObject;
+import com.auxiliary.constant.ProjectConstant;
 import com.mapper.ClientUserMapper;
 import com.service.SystemConfigService;
 import com.service.TakeDeliveryGoodsService;
@@ -32,7 +33,7 @@ public class Scheduler {
     //每隔20秒执行一次
     @Scheduled(fixedRate = 20000)
     public void testTasks() {
-        if (systemConfigService.isHeartBeatOpen()) {
+        if (systemConfigService.isTrue(ProjectConstant.heartBeatStatus)) {
             WebSocket.sendPing(jsonObject.toString());
         }
     }
@@ -40,7 +41,7 @@ public class Scheduler {
     //每天24点执行 提醒收货job
     @Scheduled(cron = "0 0 00 ? * *")
     public void OpenSystemTasks() {
-        systemConfigService.placeOrderOpen();           //打开系统下单开关
+        systemConfigService.open(ProjectConstant.payOrderStatus);           //打开系统下单开关
         log.info("开启下单功能!");
     }
 
@@ -48,7 +49,7 @@ public class Scheduler {
     @Scheduled(cron = "0 45 23 ? * *")
     public void TakeDeliveryTasks() {
 
-        systemConfigService.placeOrderClose();          //关闭系统下单开关
+        systemConfigService.close(ProjectConstant.payOrderStatus);          //关闭系统下单开关
         log.info("关闭下单功能!");
 
         {

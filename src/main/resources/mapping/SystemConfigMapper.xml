@@ -12,12 +12,12 @@
     config_id, `name`, `value`, description, create_time
   </sql>
 
-  <update id="placeOrderOpenOrColse">
-    update system_config set `value` = #{value} where `name` = 'payOrderStatus'
+  <update id="propertiesOpenOrClose">
+    update system_config set `value` = #{value} where `name` = #{name}
   </update>
 
-  <select id="isOpen" resultType="string">
-    select `value` from system_config where `name` = 'payOrderStatus' limit 1
+  <select id="getSystemConfigValue" resultType="string">
+    select `value` from system_config where `name` = #{name} limit 1
   </select>
 
 </mapper>

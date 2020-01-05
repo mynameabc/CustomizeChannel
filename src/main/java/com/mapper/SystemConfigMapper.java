@@ -4,9 +4,13 @@ import com.MyMapper;
 import com.pojo.entity.SystemConfig;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public interface SystemConfigMapper extends MyMapper<SystemConfig> {
 
-    int placeOrderOpenOrColse(@Param("value")String value);
+    int propertiesOpenOrClose(@Param("key")String key, @Param("value")String value);
 
-    String isOpen();
+    String getSystemConfigValue(@Param("name") String name);
 }
