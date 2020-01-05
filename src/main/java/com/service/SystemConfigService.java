@@ -21,15 +21,7 @@ public class SystemConfigService {
     private SystemConfigMapper systemConfigMapper;
 
     public boolean isTrue(String key) {
-
-        String value = get(key);
-        if (value.equals("1")) {
-            return true;
-        } else {
-            return false;
-        }
-
-//        return (get(key).equals("1")) ? (true) : (false);
+        return (get(key).equals("1")) ? (true) : (false);
     }
 
     public String getSystemConfigValue(String key) {
@@ -52,6 +44,6 @@ public class SystemConfigService {
             value = systemConfigMapper.getSystemConfigValue(key);
             redissonClient.getMap("sysconfig").put(key, value);
         }
-        return (String)redissonClient.getMap("sysconfig").get(value);
+        return value;
     }
 }
