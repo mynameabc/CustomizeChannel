@@ -29,7 +29,15 @@ public class SystemConfigService {
     private SystemConfigMapper systemConfigMapper;
 
     public boolean isTrue(String key) {
-        return (get(key).equals("1")) ? (true) : (false);
+
+        String value = get(key);
+        if (value.equals("1")) {
+            return true;
+        } else {
+            return false;
+        }
+
+//        return (get(key).equals("1")) ? (true) : (false);
     }
 
     public String getSystemConfigValue(String key) {

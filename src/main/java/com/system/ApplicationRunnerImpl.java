@@ -19,10 +19,8 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
     @Autowired
     private SystemConfigMapper systemConfigMapper;
 
-    private final static String payOrderStatus = "sysconfig:payOrderStatus";    //平台下单开关 0:关, 1:开
-
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
 
         //加载系统配置表到redis缓存
         {
