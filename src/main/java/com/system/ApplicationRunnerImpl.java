@@ -31,6 +31,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
                 systemConfig = systemConfigList.get(index);
                 rMap.put(systemConfig.getName(), systemConfig.getValue());
             }
+            systemConfigList.clear();
         }
     }
 }

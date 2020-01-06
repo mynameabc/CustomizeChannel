@@ -8,6 +8,7 @@ import com.mapper.SystemConfigMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SystemConfigService {
@@ -28,11 +29,13 @@ public class SystemConfigService {
         return get(key);
     }
 
+    @Transactional
     public void close(String key) {
         systemConfigMapper.propertiesOpenOrClose(key, "0");
         redissonClient.getMap("sysconfig").put(key, "0");
     }
 
+    @Transactional
     public void open(String key) {
         systemConfigMapper.propertiesOpenOrClose(key, "1");
         redissonClient.getMap("sysconfig").put(key, "1");

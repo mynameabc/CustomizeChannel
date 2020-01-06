@@ -16,6 +16,8 @@ public interface ClientUserMapper extends MyMapper<ClientUser> {
 
     ClientUser getClientUserForUsableStatus();
 
+    ClientUser getClientUserForUsableStatus2();
+
     void setNumberIni();
 
 }

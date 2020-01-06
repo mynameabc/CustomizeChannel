@@ -4,6 +4,7 @@ import com.ClientUserHandler;
 import com.auxiliary.test.NormalRoundRobinWebSocketImpl;
 import com.pojo.customize.Client;
 import com.pojo.customize.ClientUserInfo;
+import com.pojo.entity.ClientUser;
 import com.service.OrderService;
 import com.utils.ApplicationContextRegister;
 import com.utils.WebSocketSendObject;
@@ -103,10 +104,10 @@ public class WebSocket {
                         log.info("{}----------------------------新连接, 连接数:{}", userName, getOnlineCount());
 
                     } else {
-                        websocketMap.put(userName, client);
                         client.setLoginStatus(1);                     //如果是旧连接则已登陆
-                        clientUserHandler.login(userName);            //把登陆状态更新到数据库
+                        websocketMap.put(userName, client);
                         addOnlineCount();
+                        clientUserHandler.login(userName);            //把登陆状态更新到数据库
                         log.info("{}----------------------------旧连接, 连接数:{}", userName, getOnlineCount());
                     }
 
@@ -117,11 +118,27 @@ public class WebSocket {
         }
     }
 
-    public static Client getClientUser() {
-        return normalRoundRobinWebSocketImpl.round();
+    public static void test(String toUserName) {
+
+        ClientUserHandler clientUserHandler = ApplicationContextRegister.getApplicationContext().getBean(ClientUserHandler.class);
+        ClientUser clientUser = clientUserHandler.getClientUser();
+
+        //建立联接
+        {
+            clientUserHandler.removeRelation(toUserName);       //先解除
+            clientUserHandler.connect(toUserName, clientUser.getName());    //连接
+        }
+
+        //给客户端发送消息(下单小号和密码)
+        {
+            JSONObject jsonObject = WebSocketSendObject.sendObjectForJSONObject("1");
+            jsonObject.put("user_name", clientUser.getName());            //下单小号
+            jsonObject.put("password", clientUser.getPassword());         //下单小号密码
+            log.info("给---{}---发送登陆通知!", toUserName);
+            websocketMap.get(toUserName).getWebSocket().session.getAsyncRemote().sendText(jsonObject.toJSONString());
+        }
     }
 
-    public static void onAllClose() {}
 
     /**
      * 用来接收客户端发来的消息, 这个地方应该根据自己的实际业务需求, 来决定到底写什么
@@ -189,7 +206,8 @@ public class WebSocket {
      * 关闭单个联接
      * @param userName
      */
-    public void singleClose(String userName) {
+    public void singleClose(String userName, Throwable throwable) {
+        log.info("WebSocket账号:{}---出现异常!---异常信息:{}", userName, throwable.getMessage());
         OnClose(userName, null);
     }
 

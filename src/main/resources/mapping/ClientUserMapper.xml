@@ -37,6 +37,11 @@
     from client_user where status = '0' limit 1
   </select>
 
+  <select id="getClientUserForUsableStatus2" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from client_user where status = '0' and `number` &lt; 20 limit 1
+  </select>
+
   <update id="setNumberIni">
     update client_user set `number` = 0
   </update>

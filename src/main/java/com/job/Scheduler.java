@@ -7,6 +7,8 @@ import com.service.SystemConfigService;
 import com.service.TakeDeliveryGoodsService;
 import com.websokcet.WebSocket;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class Scheduler {
+
+    private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
     private JSONObject jsonObject = new JSONObject();
 
@@ -32,7 +36,8 @@ public class Scheduler {
 
     //每隔20秒执行一次
     @Scheduled(fixedRate = 20000)
-    public void testTasks() {
+    public void sendPing() {
+        logger.info("发送心跳 --- {}", System.currentTimeMillis());
         if (systemConfigService.isTrue(ProjectConstant.heartBeatStatus)) {
             WebSocket.sendPing(jsonObject.toString());
         }

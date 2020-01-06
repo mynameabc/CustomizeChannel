@@ -26,6 +26,10 @@ public class ClientUserHandler {
         return null;
     }
 
+    public ClientUser getClientUser() {
+        return clientUserMapper.getClientUserForUsableStatus();
+    }
+
     /**
      * webSocket账号再登陆
      * @param webSocketUserName
@@ -91,7 +95,7 @@ public class ClientUserHandler {
     @Transactional
     public void connect(String webSocketUserName, String placeOrderName) {
 
-        //改变数据库状态, 解除下单小号与webSocket账号之间的关系
+        //改变数据库状态, 建立下单小号与webSocket账号之间的关系
         ClientUser clientUser = clientUserMapper.getClientUserForName(placeOrderName);
         if (null != clientUser) {
             clientUser.setClientName(webSocketUserName);
@@ -103,7 +107,7 @@ public class ClientUserHandler {
     @Transactional
     public void login(String webSocketUserName) {
 
-        //改变数据库状态, 解除下单小号与webSocket账号之间的关系
+        //websocket连接登陆
         ClientUser clientUser = clientUserMapper.getClientUserForWebSocketUserName(webSocketUserName);
         if (null != clientUser) {
             clientUser.setClientStatus("1");        //客户端状态(0:未登陆, 1:已登陆)
