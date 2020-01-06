@@ -29,6 +29,11 @@ public class TestController {
 
     @GetMapping(value = "test3")
     public void test3(HttpServletRequest request) {
+
+        log.info("随便打");
+        log.warn("随便打");
+        log.debug("随便打");
+        log.error("随便打");
     }
 
 
