@@ -32,8 +32,17 @@ public class ClientUser {
     @Column(name = "client_status")
     private String clientStatus;
 
-    @Column(name = "now_date")
-    private Date nowDate;
+    @Column(name = "proxy_ip")
+    private String proxyIp;
+
+    @Column(name = "proxy_port")
+    private String proxyPort;
+
+    @Column(name = "proxy_user")
+    private String proxyUser;
+
+    @Column(name = "proxy_psw")
+    private String proxyPsw;
 
     @Column(name = "create_time")
     private Date createTime;

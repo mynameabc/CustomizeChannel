@@ -9,11 +9,14 @@
     <result column="status" jdbcType="CHAR" property="status" />
     <result column="client_name" jdbcType="VARCHAR" property="clientName" />
     <result column="client_status" jdbcType="CHAR" property="clientStatus" />
-    <result column="now_date" jdbcType="TIMESTAMP" property="nowDate" />
+    <result column="proxy_ip" jdbcType="VARCHAR" property="proxyIp" />
+    <result column="proxy_port" jdbcType="VARCHAR" property="proxyPort" />
+    <result column="proxy_user" jdbcType="VARCHAR" property="proxyUser" />
+    <result column="proxy_psw" jdbcType="VARCHAR" property="proxyPsw" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
   </resultMap>
   <sql id="Base_Column_List">
-    client_user_id, `name`, `password`, `number`, `status`, client_name, client_status, create_time
+    client_user_id, `name`, `password`, `number`, `status`, client_name, client_status, proxy_ip, proxy_port, proxy_user, proxy_psw, create_time
   </sql>
 
   <!-- number小于传进来的参数 -->

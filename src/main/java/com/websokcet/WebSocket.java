@@ -91,6 +91,10 @@ public class WebSocket {
                             JSONObject jsonObject = WebSocketSendObject.sendObjectForJSONObject("1");
                             jsonObject.put("user_name", clientUserInfo.getClientUser().getName());            //下单小号
                             jsonObject.put("password", clientUserInfo.getClientUser().getPassword());         //下单小号密码
+                            jsonObject.put("proxy_ip", clientUserInfo.getClientUser().getProxyIp());         //IP
+                            jsonObject.put("proxy_port", clientUserInfo.getClientUser().getProxyPort());       //ip密码
+                            jsonObject.put("proxy_user", clientUserInfo.getClientUser().getProxyUser());       //账号
+                            jsonObject.put("proxy_psw", clientUserInfo.getClientUser().getProxyPsw());        //密码
                             log.info("给---{}---发送登陆通知!", userName);
                             websocketMap.get(userName).getWebSocket().session.getAsyncRemote().sendText(jsonObject.toJSONString());
                         }
@@ -129,16 +133,17 @@ public class WebSocket {
             clientUserHandler.connect(toUserName, clientUser.getName());    //连接
         }
 
-        //给客户端发送消息(下单小号和密码)
-        {
-            JSONObject jsonObject = WebSocketSendObject.sendObjectForJSONObject("1");
-            jsonObject.put("user_name", clientUser.getName());            //下单小号
-            jsonObject.put("password", clientUser.getPassword());         //下单小号密码
-            log.info("给---{}---发送登陆通知!", toUserName);
-            websocketMap.get(toUserName).getWebSocket().session.getAsyncRemote().sendText(jsonObject.toJSONString());
-        }
+        //给客户端发送消息
+        JSONObject jsonObject = WebSocketSendObject.sendObjectForJSONObject("1");
+        jsonObject.put("user_name", clientUser.getName());            //下单小号
+        jsonObject.put("password", clientUser.getPassword());         //下单小号密码
+        jsonObject.put("proxy_ip", clientUser.getProxyIp());         //IP
+        jsonObject.put("proxy_port", clientUser.getProxyPort());       //ip密码
+        jsonObject.put("proxy_user", clientUser.getProxyUser());       //账号
+        jsonObject.put("proxy_psw", clientUser.getProxyPsw());        //密码
+        log.info("给---{}---发送登陆通知!", toUserName);
+        websocketMap.get(toUserName).getWebSocket().session.getAsyncRemote().sendText(jsonObject.toJSONString());
     }
-
 
     /**
      * 用来接收客户端发来的消息, 这个地方应该根据自己的实际业务需求, 来决定到底写什么
