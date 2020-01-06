@@ -206,9 +206,14 @@ public class WebSocket {
      * 关闭单个联接
      * @param userName
      */
-    public void singleClose(String userName, Throwable throwable) {
-        log.info("WebSocket账号:{}---出现异常!---异常信息:{}", userName, throwable.getMessage());
-        OnClose(userName, null);
+    public static void singleClose(String userName) {
+        if (websocketMap.containsKey(userName)) {
+            ClientUserHandler clientUserHandler = ApplicationContextRegister.getApplicationContext().getBean(ClientUserHandler.class);
+            clientUserHandler.removeRelation(userName);
+            subOnlineCount();
+            websocketMap.remove(userName);
+            log.info("{}:连接关闭！当前在线人数为:", userName, getOnlineCount());
+        }
     }
 
     /**
@@ -288,20 +293,6 @@ public class WebSocket {
         websocketMap.put(client.getClientUserName(), client);
     }
 
-    /**
-     * 是否存在可下单的websocket联接
-     * @return
-     */
-    public static Map getWebSocketUsablePlaceOrder() {
-
-        Map<String, Client> collect = websocketMap.entrySet().stream()
-                .filter(map -> map.getValue().getLoginStatus() == 1)
-                .filter(map -> map.getValue().getPlaceOrderStatus() == 1)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        return collect;
-    }
-
     public static List<Client> getWebSocketUsablePlaceOrderList() {
 
         Map<String, Client> collect = websocketMap.entrySet().stream()
@@ -311,16 +302,5 @@ public class WebSocket {
 
         List<Client> list = new ArrayList<>(collect.values());
         return list;
-    }
-
-    public static Client getWebSocketClientUserName() {
-
-        List<Client> list = new ArrayList<>(websocketMap.values());
-        List<Client> tempList = list.stream().filter(Client->(Client.getLoginStatus() == 1)).collect(Collectors.toList());
-
-        Random random = new Random();
-        int index = random.nextInt(tempList.size());
-
-        return tempList.get(index);
     }
 }
