@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Administrator
+ */
 @Slf4j
 @Component
 public class Scheduler {
@@ -34,7 +37,9 @@ public class Scheduler {
         jsonObject.put("command", "0");
     }
 
-    //每隔20秒执行一次
+    /**
+     * 每隔20秒执行一次
+     */
     @Scheduled(fixedRate = 20000)
     public void sendPing() {
         logger.info("发送心跳 --- {}", System.currentTimeMillis());
@@ -43,18 +48,25 @@ public class Scheduler {
         }
     }
 
-    //每天24点执行 提醒收货job
+    /**
+     * 每天24点执行 提醒收货job
+     */
     @Scheduled(cron = "0 0 00 ? * *")
     public void OpenSystemTasks() {
-        systemConfigService.open(ProjectConstant.payOrderStatus);           //打开系统下单开关
+
+        //打开系统下单开关
+        systemConfigService.open(ProjectConstant.payOrderStatus);
         log.info("开启下单功能!");
     }
 
-    //每天23点45分执行 提醒收货job
+    /**
+     * 每天23点45分执行 提醒收货job
+     */
     @Scheduled(cron = "0 45 23 ? * *")
     public void TakeDeliveryTasks() {
 
-        systemConfigService.close(ProjectConstant.payOrderStatus);          //关闭系统下单开关
+        //关闭系统下单开关
+        systemConfigService.close(ProjectConstant.payOrderStatus);
         log.info("关闭下单功能!");
 
         {
@@ -67,6 +79,6 @@ public class Scheduler {
         }
 
         clientUserMapper.setNumberIni();      //设置client_user表的number为0
-        takeDeliveryGoodsService.doAction();  //发送收货信息
+//        takeDeliveryGoodsService.doAction();  //发送收货信息
     }
 }

@@ -1,6 +1,7 @@
 package com.mapper;
 
 import com.MyMapper;
+import com.pojo.customize.TakeDeliveryGoods;
 import com.pojo.entity.PayOrder;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,5 +15,7 @@ public interface PayOrderMapper extends MyMapper<PayOrder> {
 
     PayOrder getOrderForClientOrderNo(@Param("clientOrderNo")String clientOrderNo);
 
-    List<PayOrder> getOrderForUserName(@Param("userName")String userName);
+    List<TakeDeliveryGoods> getOrderForUserName(@Param("userName")String userName);
+
+    List<TakeDeliveryGoods> getTakeDeliveryGoodsList(@Param("user_name")String userName);
 }

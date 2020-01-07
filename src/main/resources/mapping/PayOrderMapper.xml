@@ -22,6 +22,17 @@
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
+  <resultMap id="takeDeliveryGoodsMap" type="com.pojo.customize.TakeDeliveryGoods">
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="client_name" jdbcType="VARCHAR" property="clientName" />
+    <result column="proxy_ip" jdbcType="VARCHAR" property="proxyIp" />
+    <result column="proxy_port" jdbcType="VARCHAR" property="proxyPort" />
+    <result column="proxy_user" jdbcType="VARCHAR" property="proxyUser" />
+    <result column="proxy_psw" jdbcType="VARCHAR" property="proxyPsw" />
+    <result column="client_order_no" jdbcType="VARCHAR" property="clientOrderNo" />
+    <result column="platform_order_no" jdbcType="VARCHAR" property="platformOrderNo" />
+  </resultMap>
   <sql id="Base_Column_List">
     order_id, channel, pay_type, amount, platform_order_no, client_order_status, notify_url, 
     status, notify_send_notify_count, goods_url, user_name, password, client_order_no, 
@@ -50,6 +61,11 @@
   <select id="getOrderForUserName" resultMap="BaseResultMap">
     select <include refid="Base_Column_List"/>
     from pay_order where user_name = #{userName} and `status` = '5'
+  </select>
+
+  <select id="getTakeDeliveryGoodsList" resultMap="takeDeliveryGoodsMap">
+    SELECT `user`.name, `user`.password, `user`.client_name, `user`.proxy_ip, `user`.`proxy_port`, `user`.`proxy_user`, `user`.`proxy_psw`, `order`.client_order_no, `order`.platform_order_no
+    FROM pay_order `order` LEFT JOIN client_user AS `user` ON `order`.user_name = `user`.name WHERE user_name = #{user_name} AND `order`.`status` = '5'
   </select>
 
 </mapper>

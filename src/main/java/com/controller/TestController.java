@@ -1,8 +1,12 @@
 package com.controller;
 
+import com.mapper.ClientUserMapper;
+import com.service.SystemConfigService;
+import com.service.TakeDeliveryGoodsService;
 import com.websokcet.WebSocket;
 import io.swagger.annotations.Api;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
@@ -11,6 +15,15 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 public class TestController {
 
+    @Autowired
+    private SystemConfigService systemConfigService;
+
+    @Autowired
+    private TakeDeliveryGoodsService takeDeliveryGoodsService;
+
+    @Autowired
+    private ClientUserMapper clientUserMapper;
+
     @GetMapping(value = "test")
     public String test() {
         return WebSocket.getWebsocketMap().toString();
@@ -18,7 +31,12 @@ public class TestController {
 
     @GetMapping(value = "test2")
     public void test2(HttpServletRequest request) {
-        WebSocket.test(request.getParameter("userName"));
+        WebSocket.testSingleLogin(request.getParameter("userName"));
+    }
+
+    @GetMapping(value = "doAction")
+    public void test3(HttpServletRequest request) {
+        takeDeliveryGoodsService.doAction();
     }
 
     @GetMapping(value = "close")
@@ -26,17 +44,6 @@ public class TestController {
         String userName = request.getParameter("userName");
         WebSocket.singleClose(userName);
     }
-
-    @GetMapping(value = "test3")
-    public void test3(HttpServletRequest request) {
-
-        log.info("随便打");
-        log.warn("随便打");
-        log.debug("随便打");
-        log.error("随便打");
-    }
-
-
 }
 
 
