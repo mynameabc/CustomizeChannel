@@ -68,11 +68,6 @@
             <artifactId>redisson-spring-boot-starter</artifactId>
             <version>3.11.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson</artifactId>
-            <version>3.11.1</version>
-        </dependency>
         <!-- MyBatis包 -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
