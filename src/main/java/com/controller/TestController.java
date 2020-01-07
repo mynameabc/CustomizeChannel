@@ -36,6 +36,16 @@ public class TestController {
         String userName = request.getParameter("userName");
         WebSocket.singleClose(userName);
     }
+
+    @GetMapping(value = "test1")
+    public void test1() {
+        log.trace("trace level");
+        log.debug("debug level");
+        log.info("info level");
+        log.warn("warn level");
+        log.error("error level");
+        log.fatal("fatal level");
+    }
 }
 
 

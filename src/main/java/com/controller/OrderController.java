@@ -66,14 +66,13 @@ public class OrderController {
             parmasMap.put("sign", orderDTO.getSign());
         }
 
-        boolean isvalue = SignUtil.verifySign(parmasMap, key);
-        if (!isvalue) {
+        boolean isValue = SignUtil.verifySign(parmasMap, key);
+        if (!isValue) {
             logger.warn("{}:该订单验签没通过!---{}", orderDTO.getPlatformOrderNo(), orderDTO.toString());
             return new Result(false, "该订单验签没通过!");
         }
 
         logger.info("接收到的订单参数:{}", orderDTO.toString());
-//        orderDTO.setPlatformOrderNo(UUID.randomUUID().toString().replaceAll("-",""));
 
         //ip判断
         return orderService.pay(orderDTO);

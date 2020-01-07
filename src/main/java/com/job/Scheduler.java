@@ -42,7 +42,6 @@ public class Scheduler {
      */
     @Scheduled(fixedRate = 20000)
     public void sendPing() {
-        logger.info("发送心跳 --- {}", System.currentTimeMillis());
         if (systemConfigService.isTrue(ProjectConstant.heartBeatStatus)) {
             WebSocket.sendPing(jsonObject.toString());
         }
