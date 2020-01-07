@@ -44,7 +44,6 @@ public class TestController {
         log.info("info level");
         log.warn("warn level");
         log.error("error level");
-        log.fatal("fatal level");
     }
 }
 

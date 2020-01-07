@@ -55,10 +55,6 @@ mapper:
 
 #日志
 logging:
-#  pattern:
-#    console: "%d - %msg%n"
   file: ./log/cutomize.log
-  level:
-    com.mapper: debug
-
+  config: classpath:log4j2.xml
 
