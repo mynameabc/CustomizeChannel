@@ -1,7 +1,5 @@
 package com.controller;
 
-import com.mapper.ClientUserMapper;
-import com.service.SystemConfigService;
 import com.service.TakeDeliveryGoodsService;
 import com.websokcet.WebSocket;
 import io.swagger.annotations.Api;
@@ -16,13 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 public class TestController {
 
     @Autowired
-    private SystemConfigService systemConfigService;
-
-    @Autowired
     private TakeDeliveryGoodsService takeDeliveryGoodsService;
-
-    @Autowired
-    private ClientUserMapper clientUserMapper;
 
     @GetMapping(value = "test")
     public String test() {

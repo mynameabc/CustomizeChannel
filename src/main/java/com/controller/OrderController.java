@@ -17,7 +17,6 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Api(tags="订单")
 @RestController
