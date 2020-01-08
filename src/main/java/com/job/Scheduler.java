@@ -20,8 +20,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class Scheduler {
 
-    private static final Logger logger = LoggerFactory.getLogger(Scheduler.class);
-
     private JSONObject jsonObject = new JSONObject();
 
     @Autowired
