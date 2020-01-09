@@ -40,7 +40,7 @@ public class Scheduler {
      */
     @Scheduled(fixedRate = 20000)
     public void sendPing() {
-        if (systemConfigService.isTrue(ProjectConstant.heartBeatStatus)) {
+        if (systemConfigService.isBoolean(ProjectConstant.HEARTBEAT_STATUS)) {
             WebSocket.sendPing(jsonObject.toString());
         }
     }
@@ -52,7 +52,7 @@ public class Scheduler {
     public void OpenSystemTasks() {
 
         //打开系统下单开关
-        systemConfigService.open(ProjectConstant.payOrderStatus);
+        systemConfigService.open(ProjectConstant.PAY_ORDER_STATUS);
         log.info("开启下单功能!");
     }
 
@@ -63,7 +63,7 @@ public class Scheduler {
     public void TakeDeliveryTasks() {
 
         //关闭系统下单开关
-        systemConfigService.close(ProjectConstant.payOrderStatus);
+        systemConfigService.close(ProjectConstant.PAY_ORDER_STATUS);
         log.info("关闭下单功能!");
 
         {

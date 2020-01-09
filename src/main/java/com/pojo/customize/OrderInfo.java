@@ -6,11 +6,6 @@ import lombok.Data;
 public class OrderInfo implements java.io.Serializable {
 
     /**
-     * 平台订单号
-     */
-    private String platformOrderNo;
-
-    /**
      * 支付用的URL
      */
     private String payUrl;
