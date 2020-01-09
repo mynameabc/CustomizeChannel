@@ -69,7 +69,7 @@ public class SystemConfigService {
     }
 
     private Object get(String key) {
-        Object value = getMap();
+        Object value = getMap().get(key);
         if (StringUtils.isEmpty(value)) {
             value = systemConfigMapper.getSystemConfigValue(key);
             redissonClient.getMap(ProjectConstant.SYSTEM_CONFIG_MAP).put(key, value);

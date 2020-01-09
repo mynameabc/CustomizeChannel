@@ -53,6 +53,7 @@ public class OrderController {
 
         //下单开关
         if (!systemConfigService.isBoolean(ProjectConstant.PAY_ORDER_STATUS)) {
+            log.warn("系统下单开关被关闭, 请和管理员联系!");
             return new Result(false, "系统下单开关被关闭, 请和管理员联系!");
         }
 
