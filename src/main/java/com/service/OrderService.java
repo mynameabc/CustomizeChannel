@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.auxiliary.RoundRobin;
 import com.auxiliary.constant.ProjectConstant;
 import com.mapper.ClientUserMapper;
-import com.mapper.GoodsMapper;
 import com.mapper.PayOrderMapper;
 import com.pojo.customize.Client;
 import com.pojo.customize.OrderInfo;
@@ -42,9 +41,6 @@ public class OrderService {
     private PayOrderMapper payOrderMapper;
 
     @Autowired
-    private GoodsMapper goodsMapper;
-
-    @Autowired
     private RedissonClient redissonClient;
 
     @Autowired
@@ -69,13 +65,6 @@ public class OrderService {
             return new Result(false, "不支持该金额!");
         }
 
-        //订单号是否存在
-        PayOrder payOrder = this.getOrderForPlatformOrderNo(orderDTO.getPlatformOrderNo());
-        if (null != payOrder) {
-            log.warn("{}:该平台订单已存在, 请不要重复下单.", orderDTO.getPlatformOrderNo());
-            return new Result(false, "该平台订单已存在, 请不要重复下单!");
-        }
-
         //轮询选出账号
         List<Client> list = WebSocket.getWebSocketUsablePlaceOrderList();
         if (list.isEmpty()) {
@@ -88,13 +77,17 @@ public class OrderService {
             return new Result(false, "没有可用下单小号!");
         }
 
+        //订单号是否存在
+        PayOrder payOrder = this.getOrderForPlatformOrderNo(orderDTO.getPlatformOrderNo());
+        if (null != payOrder) {
+            log.warn("{}:该平台订单已存在, 请不要重复下单.", orderDTO.getPlatformOrderNo());
+            return new Result(false, "该平台订单已存在, 请不要重复下单!");
+        }
+
         //以平台订单号为key
         String platformOrderNoKey = orderDTO.getPlatformOrderNo();
 
         OrderInfo orderInfo = new OrderInfo();
-        orderInfo.setPayUrl(ProjectConstant.FAIL);
-        orderInfo.setClientOrderStatus("");
-
         RBucket<OrderInfo> orderInfoBucket = redissonClient.getBucket(ProjectConstant.PAY_ORDER_KEY + platformOrderNoKey);
         orderInfoBucket.set(orderInfo, 1, TimeUnit.MINUTES);
 
@@ -124,10 +117,14 @@ public class OrderService {
             sleep = 1000 * index;
             try {Thread.sleep(sleep);} catch (Exception ignored) {}
             orderInfo = orderInfoBucket.get();
-            if (!StringUtils.isBlank(orderInfo.getClientOrderStatus())) {break;}
+            if (!ProjectConstant.UNCERTAIN.equals(orderInfo.getClientOrderStatus())) {break;}
         }
 
-        if (!orderInfo.getPayUrl().equals(ProjectConstant.FAIL)) {
+        if (StringUtils.isBlank(orderInfo.getClientOrderStatus())) {
+
+        }
+
+        if (!orderInfo.getClientOrderStatus().equals(ProjectConstant.FAIL)) {
             orderInfoBucket.delete();
             return new Result(true, "成功!", orderInfo.getPayUrl());
         } else {
