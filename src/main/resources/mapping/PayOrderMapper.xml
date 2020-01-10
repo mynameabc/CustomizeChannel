@@ -10,6 +10,7 @@
     <result column="client_order_status" jdbcType="VARCHAR" property="clientOrderStatus" />
     <result column="notify_url" jdbcType="VARCHAR" property="notifyUrl" />
     <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="receiving_goods_status" jdbcType="VARCHAR" property="receivingGoodsStatus" />
     <result column="notify_send_notify_count" jdbcType="INTEGER" property="notifySendNotifyCount" />
     <result column="goods_url" jdbcType="VARCHAR" property="goodsUrl" />
     <result column="user_name" jdbcType="VARCHAR" property="userName" />
@@ -17,10 +18,10 @@
     <result column="client_order_no" jdbcType="VARCHAR" property="clientOrderNo" />
     <result column="pay_url" jdbcType="VARCHAR" property="payUrl" />
     <result column="sign" jdbcType="VARCHAR" property="sign" />
-    <result column="notify_last_send_time" jdbcType="TIMESTAMP" property="notifyLastSendTime" />
     <result column="return_result" jdbcType="VARCHAR" property="returnResult" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="pay_time" jdbcType="TIMESTAMP" property="payTime" />
+    <result column="receiving_goods_time" jdbcType="TIMESTAMP" property="receivingGoodsTime" />
   </resultMap>
   <resultMap id="takeDeliveryGoodsMap" type="com.pojo.customize.TakeDeliveryGoods">
     <result column="name" jdbcType="VARCHAR" property="name" />
@@ -35,37 +36,25 @@
   </resultMap>
   <sql id="Base_Column_List">
     order_id, channel, pay_type, amount, platform_order_no, client_order_status, notify_url, 
-    status, notify_send_notify_count, goods_url, user_name, password, client_order_no, 
-    pay_url, sign, notify_last_send_time, return_result, create_time, update_time
+    status, receiving_goods_status, notify_send_notify_count, goods_url, user_name, password, client_order_no,
+    pay_url, sign, return_result, create_time, pay_time, receiving_goods_time
   </sql>
 
   <select id="getOrderForPlatformOrderNo" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from pay_order
-    where platform_order_no = #{platformOrderNo}
-  </select>
-
-  <select id="getOrderForStatus" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List"/>
-    from pay_order
-    where `status` = #{status}
+    where platform_order_no = #{platformOrderNo} limit 1
   </select>
 
   <select id="getOrderForClientOrderNo" resultMap="BaseResultMap">
     select <include refid="Base_Column_List"/>
     from pay_order where client_order_no = #{clientOrderNo}
   </select>
-  
-  <select id="getOrderForUserName" resultMap="BaseResultMap">
-    select <include refid="Base_Column_List"/>
-    from pay_order where user_name = #{userName} and `status` = '5'
-  </select>
 
   <select id="getTakeDeliveryGoodsList" resultMap="takeDeliveryGoodsMap">
     SELECT `user`.name, `user`.password, `user`.client_name, `user`.proxy_ip, `user`.`proxy_port`, `user`.`proxy_user`, `user`.`proxy_psw`, `order`.client_order_no, `order`.platform_order_no
-    FROM pay_order `order` LEFT JOIN client_user AS `user` ON `order`.user_name = `user`.name WHERE user_name = #{user_name} AND `order`.`status` = '5'
+    FROM pay_order `order` LEFT JOIN client_user AS `user` ON `order`.user_name = `user`.name WHERE user_name = #{user_name} AND `order`.`status` = '1' AND `order`.receiving_goods_status = '0'
   </select>
 
 </mapper>

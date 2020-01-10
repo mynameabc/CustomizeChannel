@@ -1,6 +1,6 @@
 package com.pojo.customize;
 
-import com.auxiliary.constant.ProjectConstant;
+import com.auxiliary.constant.OrderClientContant;
 import lombok.Data;
 
 @Data
@@ -18,6 +18,6 @@ public class OrderInfo implements java.io.Serializable {
 
     public OrderInfo() {
         this.payUrl = "";
-        this.clientOrderStatus = ProjectConstant.UNCERTAIN;
+        this.clientOrderStatus = OrderClientContant.INITIALIZATION;
     }
 }

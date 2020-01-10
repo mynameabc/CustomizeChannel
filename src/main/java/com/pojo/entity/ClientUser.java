@@ -26,6 +26,9 @@ public class ClientUser {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "place_order_status")
+    private String placeOrderStatus;
+
     @Column(name = "client_name")
     private String clientName;
 
@@ -43,6 +46,15 @@ public class ClientUser {
 
     @Column(name = "proxy_psw")
     private String proxyPsw;
+
+    @Column(name = "receive_username")
+    private String receiveUserName;
+
+    @Column(name = "receive_phone")
+    private String receivePhone;
+
+    @Column(name = "receive_address")
+    private String receiveAddress;
 
     @Column(name = "create_time")
     private Date createTime;

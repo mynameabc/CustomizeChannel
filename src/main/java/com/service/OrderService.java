@@ -3,6 +3,9 @@ package com.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.auxiliary.RoundRobin;
+import com.auxiliary.constant.ClientUserContant;
+import com.auxiliary.constant.OrderClientContant;
+import com.auxiliary.constant.OrderContant;
 import com.auxiliary.constant.ProjectConstant;
 import com.mapper.ClientUserMapper;
 import com.mapper.PayOrderMapper;
@@ -20,7 +23,6 @@ import com.websokcet.WebSocket;
 import communal.Result;
 import communal.util.MD5Util;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,9 @@ public class OrderService {
     @Autowired
     private SystemConfigService systemConfigService;
 
+    @Autowired
+    private SnowflakeIdUtils snowflakeIdUtils;
+
     /**
      * 下单(自己四方调)
      *
@@ -58,8 +63,8 @@ public class OrderService {
     public Result pay(OrderDTO orderDTO) {
 
         //金额是否正确
-        Goods goods = (Goods)redissonClient
-                .getBucket(ProjectConstant.GOODS_KEY_PAY_AMOUNT + orderDTO.getAmount()).get();
+        Goods goods = (Goods) redissonClient.
+                getBucket(ProjectConstant.GOODS_KEY_PAY_AMOUNT + orderDTO.getAmount()).get();
         if (null == goods) {
             log.warn("{}:不支持该金额", orderDTO.getPlatformOrderNo());
             return new Result(false, "不支持该金额!");
@@ -84,11 +89,9 @@ public class OrderService {
             return new Result(false, "该平台订单已存在, 请不要重复下单!");
         }
 
-        //以平台订单号为key
-        String platformOrderNoKey = orderDTO.getPlatformOrderNo();
-
         OrderInfo orderInfo = new OrderInfo();
-        RBucket<OrderInfo> orderInfoBucket = redissonClient.getBucket(ProjectConstant.PAY_ORDER_KEY + platformOrderNoKey);
+        RBucket<OrderInfo> orderInfoBucket =
+                redissonClient.getBucket(ProjectConstant.PAY_ORDER_KEY + orderDTO.getPlatformOrderNo());
         orderInfoBucket.set(orderInfo, 1, TimeUnit.MINUTES);
 
         {
@@ -117,20 +120,35 @@ public class OrderService {
             sleep = 1000 * index;
             try {Thread.sleep(sleep);} catch (Exception ignored) {}
             orderInfo = orderInfoBucket.get();
-            if (!ProjectConstant.UNCERTAIN.equals(orderInfo.getClientOrderStatus())) {break;}
+            if (!OrderClientContant.INITIALIZATION.equals(orderInfo.getClientOrderStatus())) {
+                break;
+            }
         }
 
-        if (StringUtils.isBlank(orderInfo.getClientOrderStatus())) {
-
+        Result result;
+        switch (orderInfo.getClientOrderStatus()) {
+            case OrderClientContant.SUCCESS:
+                log.info("{}:请求成功, 链接地址:{}", orderDTO.getPlatformOrderNo(), orderInfo.getPayUrl());
+                result = new Result(true, "请求成功!", orderInfo.getPayUrl());
+                break;
+            case OrderClientContant.NO_QUANTITY_AVAILABLE_IN_STOCK:
+                log.warn("{}:该商品库存不足!", orderDTO.getAmount());
+                result = new Result(false, orderDTO.getAmount() + ":该商品库存不足!");
+                break;
+            case OrderClientContant.ACCOUNT_NUMBER_REACHES_THE_SUPPER_LIMIT:
+                log.warn("{}:小号下单次数达到上限!", orderDTO.getAmount());
+                result = new Result(false, "小号下单次数达到上限!");
+                break;
+            case OrderClientContant.UNCERTAIN:
+                log.warn("{}:客户端返回未知标识, 请和管理员联系!", orderDTO.getPlatformOrderNo());
+                result = new Result(false, "客户端返回未知标识, 请和管理员联系!");
+                break;
+            default:
+                log.warn("{}:请求超时!", orderDTO.getPlatformOrderNo());
+                result = new Result(false, "请求超时!");
+                break;
         }
-
-        if (!orderInfo.getClientOrderStatus().equals(ProjectConstant.FAIL)) {
-            orderInfoBucket.delete();
-            return new Result(true, "成功!", orderInfo.getPayUrl());
-        } else {
-            orderInfoBucket.delete();
-            return new Result(false, "请求超时!");
-        }
+        return result;
     }
 
     /**
@@ -145,27 +163,27 @@ public class OrderService {
         JSONObject jsonObject = JSONObject.parseObject(resultJSONString);
 
         //商品URL
-        String goods_url = jsonObject.getString("goods_url");
+        String goodsUrl = jsonObject.getString("goods_url");
         //充值渠道
         String channel = jsonObject.getString("channel");
         //下单小号
-        String user_name = jsonObject.getString("user_name");
+        String userName = jsonObject.getString("user_name");
         //下单小号密码
         String password = jsonObject.getString("password");
         //支付方式
-        String pay_type = jsonObject.getString("pay_type");
+        String payType = jsonObject.getString("pay_type");
         //订单金额
         String amount = jsonObject.getString("amount");
         //客户端执行状态 0:成功, 1:库存不足, 2:账号次数达到上限
         String clientOrderStatus = jsonObject.getString("client_order_status");
         //支付地址
-        String pay_url = jsonObject.getString("pay_url");
+        String payUrl = jsonObject.getString("pay_url");
         //国美订单号
-        String client_order_no = jsonObject.getString("client_order_no");
+        String clientOrderNo = jsonObject.getString("client_order_no");
         //平台订单号
         String platformOrderNo = jsonObject.getString("platform_order_no");
         //回调地址
-        String notify_url = jsonObject.getString("notify_url");
+        String notifyUrl = jsonObject.getString("notify_url");
         //加签后字符串
         String sign = jsonObject.getString("sign");
 
@@ -179,115 +197,76 @@ public class OrderService {
             return new Result(false, "setPayURL参数错误!");
         }
 
-        try {
+        RBucket<OrderInfo> rBucket = redissonClient.getBucket(ProjectConstant.PAY_ORDER_KEY + platformOrderNo);
+        OrderInfo orderInfo = rBucket.get();
+        if (null == orderInfo) {
+            log.error("订单号:{}---该平台订单号不存在!", platformOrderNo);
+            return new Result(false, "该平台订单号不存在!");
+        } else {
 
-            //取出缓存对象判断是否存在
-            {
-                RBucket<OrderInfo> rBucket = redissonClient.getBucket(ProjectConstant.PAY_ORDER_KEY + platformOrderNo);
-                OrderInfo orderInfo = rBucket.get();
+            orderInfo.setPayUrl(payUrl);
+            orderInfo.setClientOrderStatus(clientOrderStatus);
+            rBucket.set(orderInfo);
 
-                if (null == orderInfo) {
-                    log.error("订单号:{}---该平台订单号不存在!---redis", platformOrderNo);
-                    return new Result(false, "该平台订单号不存在");
+            //如果成功返回支付地址
+            if (clientOrderStatus.equals(OrderClientContant.SUCCESS)) {
+
+                ClientUser clientUser = clientUserMapper.getClientUserForName(userName);
+                Client client = WebSocket.getClient(clientUser.getClientName());
+                int number = clientUser.getNumber() + 1;
+
+                clientUser.setNumber(number);
+                client.setPlaceOrderNumber(number);
+
+                //判断小号是否下满
+                int orderNumberCount = systemConfigService.getIntegerValue(ProjectConstant.SUPERIOR_LIMIT);
+                if (number >= orderNumberCount) {
+                    client.setPlaceOrderStatus(Integer.parseInt(ClientUserContant.NO));
+                    clientUser.setPlaceOrderStatus(ClientUserContant.NO);
                 }
-
-                if (StringUtils.isBlank(clientOrderStatus)) {
-                    //客户端状态返回空时给于一个状态
-                    orderInfo.setClientOrderStatus("9");
-                } else {
-                    orderInfo.setClientOrderStatus(clientOrderStatus);
-
-                    ClientUser clientUser = clientUserMapper.getClientUserForName(user_name);
-                    if (null == clientUser) {
-                        log.error("订单号:{}---该下单小号不存在!", platformOrderNo);
-                        return new Result(false, "该下单小号不存在!");
-                    }
-
-                    if (clientOrderStatus.equals("0")) {
-
-                        int number = clientUser.getNumber();
-                        clientUser.setNumber(++number);
-                        clientUserMapper.updateByPrimaryKeySelective(clientUser);
-
-                        //判断小号是否下满
-                        {
-                            int orderNumberCount = systemConfigService.getIntegerValue(ProjectConstant.SUPERIOR_LIMIT).intValue();
-                            if (number >= orderNumberCount) {
-
-                                //WebSocket里当前client对象的PlaceOrderStatus属性设成0(不可下单)
-                                Client client = WebSocket.getClient(clientUser.getClientName());
-                                client.setPlaceOrderStatus(0);
-                                WebSocket.setClient(client);
-
-                                //job跑client_user表的number设成0
-                                //WebSocket里client对象的PlaceOrderStatus属性全设成1
-                            }
-                        }
-
-                        orderInfo.setPayUrl(pay_url);
-                    }
-                }
-
-                rBucket.set(orderInfo, 30, TimeUnit.SECONDS);
+                clientUserMapper.updateByPrimaryKeySelective(clientUser);
+                WebSocket.setClient(client);
             }
+        }
+
+        String status = "";
+        if (clientOrderStatus.equals(OrderClientContant.SUCCESS)) {status = OrderContant.SUCCESS;}
+        if (clientOrderStatus.equals(OrderClientContant.NO_QUANTITY_AVAILABLE_IN_STOCK)) {status = OrderContant.FAIL;}
+        if (clientOrderStatus.equals(OrderClientContant.ACCOUNT_NUMBER_REACHES_THE_SUPPER_LIMIT)) {status = OrderContant.FAIL;}
+        if (clientOrderStatus.equals(OrderClientContant.UNCERTAIN)) {clientOrderStatus = OrderClientContant.UNCERTAIN_VALUE;status = OrderContant.FAIL;}
+
+        try {
 
             //查看数据库是否存在该订单
             PayOrder payOrder = payOrderMapper.getOrderForPlatformOrderNo(platformOrderNo);
             if (null != payOrder) {
-                log.error("订单号:{}---该平台订单号已在存!---DB", platformOrderNo);
+                log.error("订单号:{}---该平台订单号已在存!", platformOrderNo);
                 return new Result(false, "该平台订单号已在存!");
             }
 
+            payOrder = new PayOrder();
             {
-                String status = "";
-                Date nowDate = new Date();
-                SnowflakeIdUtils idWorker = new SnowflakeIdUtils(3, 1);
-
-                log.info("订单号:{}的clientOrderStatus状态是:{}", platformOrderNo, clientOrderStatus);
-
-                switch (clientOrderStatus) {
-                    case "0":
-                        //支付链接生成成功
-                        status = "1";
-                        break;
-                    case "1":
-                        //支付连接生成失败
-                        status = "3";
-                        break;
-                    case "2":
-                        //支付连接生成失败
-                        status = "3";
-                        break;
-                    case "9":
-                        //前线返回未知状态
-                        status = "6";
-                    default:
-                        break;
-                }
-
-                payOrder = new PayOrder();
-                {
-                    payOrder.setOrderId(idWorker.nextId());
-                    payOrder.setSign(sign);
-                    payOrder.setGoodsUrl(goods_url);
-                    payOrder.setChannel(channel);
-                    payOrder.setPayType(pay_type);
-                    payOrder.setAmount(amount);
-                    payOrder.setPlatformOrderNo(platformOrderNo);
-                    payOrder.setUserName(user_name);
-                    payOrder.setPassword(password);
-                    payOrder.setClientOrderNo(client_order_no);
-                    payOrder.setPayUrl(pay_url);
-                    payOrder.setClientOrderStatus(clientOrderStatus);
-                    payOrder.setStatus(status);
-                    payOrder.setNotifyUrl(notify_url);
-                    payOrder.setNotifySendNotifyCount(0);
-                    payOrder.setCreateTime(nowDate);
-                    payOrderMapper.insert(payOrder);
-                }
-
-                log.info("-------------------设置支付URL方法成功-------------------:" + clientOrderStatus);
+                payOrder.setOrderId(snowflakeIdUtils.nextId());
+                payOrder.setSign(sign);
+                payOrder.setGoodsUrl(goodsUrl);
+                payOrder.setChannel(channel);
+                payOrder.setPayType(payType);
+                payOrder.setAmount(amount);
+                payOrder.setPlatformOrderNo(platformOrderNo);
+                payOrder.setUserName(userName);
+                payOrder.setPassword(password);
+                payOrder.setClientOrderNo(clientOrderNo);
+                payOrder.setPayUrl(payUrl);
+                payOrder.setClientOrderStatus(clientOrderStatus);
+                payOrder.setStatus(status);
+                payOrder.setReceivingGoodsStatus(OrderContant.RECEIVING_GOODS_STATUS_NO);
+                payOrder.setNotifyUrl(notifyUrl);
+                payOrder.setNotifySendNotifyCount(0);
+                payOrder.setCreateTime(new Date());
+                payOrderMapper.insert(payOrder);
             }
+
+            log.info("-------------------设置支付URL方法成功-------------------:" + clientOrderStatus);
 
         } catch (Exception e) {
             String logInfo = platformOrderNo + ":订单号:{}---记录添加异常!" + "\n";
@@ -373,19 +352,19 @@ public class OrderService {
             return new Result(false, platformOrderNo + "没查到该订单号!");
         }
 
-        //订单状态(1:支付连接生成成功, 2:成功(支付链接有返回给调用方), 3:支付连接生成失败, 4:请求超时, 5:支付成功, 6:前线返回未知状态)
-        if (payOrder.getStatus().equals("5")) {
+        //订单状态(0:支付连接生成成功, 1:支付成功(收到回调), 2:支付连接生成失败)
+        if (payOrder.getStatus().equals(OrderContant.PAY_SUCCESS)) {
             log.info("{}:该订单号状态已设为支付成功---回调方法!", platformOrderNo);
             return new Result(false, platformOrderNo + ":已通知过, 不要重复发送!");
         }
 
         //订单状态是支付连接生成成功时
-        if (payOrder.getStatus().equals("1")) {
+        if (payOrder.getStatus().equals(OrderContant.SUCCESS)) {
 
             int count = 0;
             try {
-                payOrder.setStatus("5");
-                payOrder.setUpdateTime(new Date());
+                payOrder.setStatus(OrderContant.PAY_SUCCESS);
+                payOrder.setPayTime(new Date());
                 count = payOrderMapper.updateByPrimaryKey(payOrder);
             } catch (Exception e) {
                 String logInfo = platformOrderNo + ":订单号:{}---更新异常!" + "\n";
@@ -447,12 +426,15 @@ public class OrderService {
         return null;
     }
 
+    /**
+     * 确认收货
+     * @param clientOrderNo
+     */
     @Transactional(rollbackFor = Exception.class)
-    public void update(String clientOrderNo) {
-
+    public void receivingGoodsStatusYes(String clientOrderNo) {
         PayOrder payOrder = payOrderMapper.getOrderForClientOrderNo(clientOrderNo);
         if (null != payOrder) {
-            payOrder.setStatus("7");
+            payOrder.setReceivingGoodsStatus(OrderContant.RECEIVING_GOODS_STATUS_YES);
             payOrderMapper.updateByPrimaryKeySelective(payOrder);
             log.info("{}:记录更新!", clientOrderNo);
         }

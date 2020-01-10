@@ -6,11 +6,6 @@ package com.auxiliary.constant;
 public class ProjectConstant {
 
     /**
-     * 表示不确定的
-     */
-    public static final String UNCERTAIN = "-1";
-
-    /**
      * 表示:否 失败
      */
     public static final String FAIL = "0";

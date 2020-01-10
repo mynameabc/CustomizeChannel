@@ -1,10 +1,13 @@
 package com.utils;
- 
+
+import org.springframework.stereotype.Component;
+
 /**
  * @Author：JCccc
  * @Description：
  * @Date： created in 15:31 2019/6/12
  */
+@Component
 public class SnowflakeIdUtils {
     // ==============================Fields===========================================
     /** 开始时间截 (2015-01-01) */
@@ -50,6 +53,25 @@ public class SnowflakeIdUtils {
     private long lastTimestamp = -1L;
  
     //==============================Constructors=====================================
+
+    /**
+     *
+     */
+    public SnowflakeIdUtils() {
+
+        long workerId = 3L;
+        long dragenterId = 1L;
+
+        if (workerId > maxWorkerId || workerId < 0) {
+            throw new IllegalArgumentException(String.format("worker Id can't be greater than %d or less than 0", maxWorkerId));
+        }
+        if (dragenterId > maxDatacenterId || dragenterId < 0) {
+            throw new IllegalArgumentException(String.format("datacenter Id can't be greater than %d or less than 0", maxDatacenterId));
+        }
+        this.workerId = workerId;
+        this.datacenterId = dragenterId;
+    }
+
     /**
      * 构造函数
      * @param workerId 工作ID (0~31)
@@ -128,7 +150,7 @@ public class SnowflakeIdUtils {
     //==============================Test=============================================
     /** 测试 */
     public static void main(String[] args) {
-        SnowflakeIdUtils idWorker = new SnowflakeIdUtils(3, 1);
+        SnowflakeIdUtils idWorker = new SnowflakeIdUtils();
         System.out.println(idWorker.nextId());
     }
 }

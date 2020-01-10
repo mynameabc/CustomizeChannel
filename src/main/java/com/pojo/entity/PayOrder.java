@@ -38,6 +38,9 @@ public class PayOrder implements java.io.Serializable {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "receiving_goods_status")
+    private String receivingGoodsStatus;
+
     @Column(name = "notify_send_notify_count")
     private Integer notifySendNotifyCount;
 
@@ -59,15 +62,15 @@ public class PayOrder implements java.io.Serializable {
     @Column(name = "sign")
     private String sign;
 
-    @Column(name = "notify_last_send_time")
-    private Date notifyLastSendTime;
-
     @Column(name = "return_result")
     private String returnResult;
 
     @Column(name = "create_time")
     private Date createTime;
 
-    @Column(name = "update_time")
-    private Date updateTime;
+    @Column(name = "pay_time")
+    private Date payTime;
+
+    @Column(name = "receiving_goods_time")
+    private Date receivingGoodsTime;
 }

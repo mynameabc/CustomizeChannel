@@ -228,7 +228,7 @@ public class WebSocket {
 
             String client_order_no = jsonObject.getString("client_order_no");
             log.info("{}:开始确认收货---订单号是:{}", userName, client_order_no);
-            orderService.update(client_order_no);
+            orderService.receivingGoodsStatusYes(client_order_no);
         }
     }
 
@@ -332,7 +332,7 @@ public class WebSocket {
         return websocketMap.get(userName);
     }
 
-    public static void setClient(Client client) {
+    public static synchronized void setClient(Client client) {
         websocketMap.put(client.getClientUserName(), client);
     }
 

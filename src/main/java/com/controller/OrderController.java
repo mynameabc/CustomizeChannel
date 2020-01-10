@@ -37,7 +37,7 @@ public class OrderController {
     @RequestMapping(value = "setPayURL", method = RequestMethod.POST)
     public Result setPayUrl(HttpServletRequest request) {
         String resultJSONString = request.getParameter("resultJSONString");
-        log.info("setPayURL:" + resultJSONString);
+        log.info("setPayUrl:" + resultJSONString);
         return orderService.setPayUrl(resultJSONString);
     }
 
