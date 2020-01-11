@@ -8,6 +8,17 @@
 
         <property name="javaFileEncoding" value="UTF-8"/>
 
+        <plugin type="com.plugin.LombokPlugin" >
+            <property name="hasLombok" value="true"/>
+        </plugin>
+
+        <!-- 使用自带序列化插件 -->
+        <plugin type="org.mybatis.generator.plugins.SerializablePlugin"/>
+        <!-- 自定义的注释生成插件-->
+        <plugin type="com.plugin.LombokPlugin">
+
+        </plugin>
+
         <commentGenerator>
             <property name="suppressDate" value="false"/>
             <property name="suppressAllComments" value="true"/>
@@ -33,7 +44,7 @@
         </sqlMapGenerator>
 
         <!-- 表 -->
-        <table tableName="pay_order" domainObjectName="PayOrder" enableCountByExample="false" enableUpdateByExample="false"
+        <table tableName="ip_addr" domainObjectName="IPAddr" enableCountByExample="false" enableUpdateByExample="false"
                enableDeleteByExample="false" enableSelectByExample="false"
                selectByExampleQueryId="false">
         </table>

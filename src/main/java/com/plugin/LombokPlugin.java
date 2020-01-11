@@ -3,6 +3,7 @@ package com.plugin;
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
+import org.mybatis.generator.api.dom.java.Interface;
 import org.mybatis.generator.api.dom.java.Method;
 import org.mybatis.generator.api.dom.java.TopLevelClass;
 
@@ -10,62 +11,47 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-/**
- * lombok插件
- * @author lintengyue
- *
- */
 public class LombokPlugin extends PluginAdapter {
 
+    public LombokPlugin() {
+    }
+
     @Override
-    public boolean validate(List<String> warnings) {
-        StringBuffer sb = new StringBuffer();
-        sb.append("\r\n【检测到lombok插件支持】\r\n");
-        sb.append("【LombokPlugin init】\r\n");
-        warnings.add(sb.toString());    	
+    public boolean validate(List<String> list) {
         return true;
     }
 
     @Override
     public boolean modelBaseRecordClassGenerated(TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
-    	
-        //添加entity的import
         topLevelClass.addImportedType("lombok.Data");
-        topLevelClass.addImportedType("lombok.Builder");
-        topLevelClass.addImportedType("lombok.NoArgsConstructor");
-        topLevelClass.addImportedType("lombok.AllArgsConstructor");
-
-        //添加entity的注解
         topLevelClass.addAnnotation("@Data");
-        topLevelClass.addAnnotation("@Builder");
-        topLevelClass.addAnnotation("@NoArgsConstructor");
-        topLevelClass.addAnnotation("@AllArgsConstructor");
-
-        //添加entity的注释
+        //topLevelClass.addImportedType("lombok.Getter");
+        //topLevelClass.addImportedType("lombok.Setter");
+        //topLevelClass.addImportedType("lombok.ToString");
+        //topLevelClass.addAnnotation("@Getter");
+        //topLevelClass.addAnnotation("@Setter");
+        //topLevelClass.addAnnotation("@ToString");
         topLevelClass.addJavaDocLine("/**");
-        topLevelClass.addJavaDocLine(" * MyBatis Generator工具自动生成" + date2Str(new Date()));
-        topLevelClass.addJavaDocLine(" * ");
-        topLevelClass.addJavaDocLine(" * 开发人员不允许修改");
-        topLevelClass.addJavaDocLine(" * @author lintengyue");
-        topLevelClass.addJavaDocLine(" */");
-
+        topLevelClass.addJavaDocLine("* Created by Mybatis Generator " + this.date2Str(new Date()));
+        topLevelClass.addJavaDocLine("*/");
         return true;
     }
 
-//    @Override
-//    public boolean clientGenerated(Interface interfaze, TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
-//        return true;
-//    }
+    @Override
+    public boolean clientGenerated(Interface interfaze, TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
+        interfaze.addJavaDocLine("/**");
+        interfaze.addJavaDocLine("* Created by Mybatis Generator " + this.date2Str(new Date()));
+        interfaze.addJavaDocLine("*/");
+        return true;
+    }
 
     @Override
     public boolean modelSetterMethodGenerated(Method method, TopLevelClass topLevelClass, IntrospectedColumn introspectedColumn, IntrospectedTable introspectedTable, ModelClassType modelClassType) {
-        //不生成getter
         return false;
     }
 
     @Override
     public boolean modelGetterMethodGenerated(Method method, TopLevelClass topLevelClass, IntrospectedColumn introspectedColumn, IntrospectedTable introspectedTable, ModelClassType modelClassType) {
-        //不生成setter
         return false;
     }
 
@@ -74,3 +60,4 @@ public class LombokPlugin extends PluginAdapter {
         return sdf.format(date);
     }
 }
+

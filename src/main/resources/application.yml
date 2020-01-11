@@ -55,6 +55,5 @@ mapper:
 
 #日志
 logging:
-  file: ./log/cutomize.log
   config: classpath:log4j2.xml
 

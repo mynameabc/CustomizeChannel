@@ -41,11 +41,28 @@ public class SystemConfigService {
     }
 
     public Integer getIntegerValue(String key) {
-        return Integer.valueOf(getStringValue(key));
+        return Integer.parseInt(getStringValue(key));
+    }
+
+    public Long getLongValue(String key) {
+        return Long.parseLong(getStringValue(key));
     }
 
     public boolean isBoolean(String key) {
         return get(key).equals(ProjectConstant.SUCCESS);
+    }
+
+    private Object get(String key) {
+        Object value = getMap().get(key);
+        if (StringUtils.isEmpty(value)) {
+            value = systemConfigMapper.getSystemConfigValue(key);
+            redissonClient.getMap(ProjectConstant.SYSTEM_CONFIG_MAP).put(key, value);
+        }
+        return value;
+    }
+
+    private RMap<String, String> getMap() {
+        return redissonClient.getMap(ProjectConstant.SYSTEM_CONFIG_MAP);
     }
 
     /**
@@ -66,18 +83,5 @@ public class SystemConfigService {
         if (!systemConfigList.isEmpty()) {
             systemConfigList.clear();
         }
-    }
-
-    private Object get(String key) {
-        Object value = getMap().get(key);
-        if (StringUtils.isEmpty(value)) {
-            value = systemConfigMapper.getSystemConfigValue(key);
-            redissonClient.getMap(ProjectConstant.SYSTEM_CONFIG_MAP).put(key, value);
-        }
-        return value;
-    }
-
-    private RMap<String, String> getMap() {
-        return redissonClient.getMap(ProjectConstant.SYSTEM_CONFIG_MAP);
     }
 }
