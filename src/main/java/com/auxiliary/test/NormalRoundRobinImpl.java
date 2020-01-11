@@ -29,6 +29,7 @@ public class NormalRoundRobinImpl implements INormalRoundRobin {
     /**
      * 初始化
      */
+    @Override
     public void init() {
 
         servers = new ArrayList<>();
@@ -79,6 +80,7 @@ public class NormalRoundRobinImpl implements INormalRoundRobin {
      * 轮询
      * @return
      */
+    @Override
     public Client round() {
         currentIndex = (currentIndex + 1) % totalServer;
         Client client = servers.get(currentIndex);

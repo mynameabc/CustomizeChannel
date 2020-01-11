@@ -418,7 +418,7 @@ public class OrderService {
             return "fail";
         }
 
-        if (jsonObject.getString("result").equals("OK")) {
+        if ("OK".equals(jsonObject.getString("result"))) {
             log.info("结果正确:success");
             return "success";
         }

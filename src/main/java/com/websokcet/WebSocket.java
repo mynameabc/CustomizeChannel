@@ -203,17 +203,17 @@ public class WebSocket {
         String command = jsonObject.getString("command");
 
         //登陆 服务器发送到客户端
-        if (command.equals("1")) {
+        if ("1".equals(command)) {
             //配发下单小号给客户端连接
         }
 
         //小号登陆失败 客户端发送服务器
-        if (command.equals("2")) {
+        if ("2".equals(command)) {
             //重新配发下单小号给客户端连接
         }
 
         //小号登陆成功更新状态 <客户端发送服务器>
-        if (command.equals("3")) {
+        if ("3".equals(command)) {
 
             log.info("{}:已登陆成功!", userName);
 
@@ -224,7 +224,7 @@ public class WebSocket {
         }
 
         //收货, 改变数据库状态
-        if (command.equals("6")) {
+        if ("6".equals(command)) {
 
             String client_order_no = jsonObject.getString("client_order_no");
             log.info("{}:开始确认收货---订单号是:{}", userName, client_order_no);

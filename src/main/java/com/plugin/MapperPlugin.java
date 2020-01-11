@@ -51,6 +51,7 @@ public class MapperPlugin extends PluginAdapter {
      * @param warnings
      * @return
      */
+    @Override
     public boolean validate(List<String> warnings) {
         mapperTargetDir = properties.getProperty("targetProject");
         boolean valid = stringHasValue(mapperTargetDir);
@@ -76,6 +77,7 @@ public class MapperPlugin extends PluginAdapter {
      * 实现com.mumogu.diy.mapper.BaseMapper<T, PK> 
      * @author lintengyue
      */
+    @Override
     public List<GeneratedJavaFile> contextGenerateAdditionalJavaFiles(IntrospectedTable introspectedTable) {
     	
     	//构造器
