@@ -128,15 +128,15 @@ public class OrderService {
         Result result;
         switch (orderInfo.getClientOrderStatus()) {
             case OrderClientContant.SUCCESS:
-                log.info("{}:请求成功, 链接地址:{}", orderDTO.getPlatformOrderNo(), orderInfo.getPayUrl());
+                log.info("{}:请求成功, 支付链接:{}", orderDTO.getPlatformOrderNo(), orderInfo.getPayUrl());
                 result = new Result("00000", true, "请求成功!", orderInfo.getPayUrl());
                 break;
             case OrderClientContant.NO_QUANTITY_AVAILABLE_IN_STOCK:
-                log.warn("{}:该商品库存不足!", orderDTO.getAmount());
+                log.warn("{}:该商品库存不足!", orderDTO.getPlatformOrderNo());
                 result = new Result("00007", orderDTO.getAmount() + ":该商品库存不足!");
                 break;
             case OrderClientContant.ACCOUNT_NUMBER_REACHES_THE_SUPPER_LIMIT:
-                log.warn("{}:小号下单次数达到上限!", orderDTO.getAmount());
+                log.warn("{}:小号下单次数达到上限!", orderDTO.getPlatformOrderNo());
                 result = new Result("00008", "小号下单次数达到上限!");
                 break;
             case OrderClientContant.UNCERTAIN:
