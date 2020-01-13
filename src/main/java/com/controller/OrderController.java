@@ -64,7 +64,7 @@ public class OrderController {
         //下单开关
         if (!systemConfigService.isBoolean(ProjectConstant.PAY_ORDER_STATUS)) {
             log.warn("系统下单开关被关闭, 请和管理员联系!");
-            return new Result("00001", "系统下单开关被关闭, 请和管理员联系!");
+            return new Result("0001", "系统下单开关被关闭, 请和管理员联系!");
         }
 
         //ip判断
@@ -72,7 +72,7 @@ public class OrderController {
         String ip = systemConfigService.getStringValue(ProjectConstant.PAY_ORDER_IP_WHITE);
         if (!clientIp.equals(ip)) {
             log.warn("下单客户端IP不在白名单中!");
-            return new Result("00002", "下单客户端IP不在白名单中!");
+            return new Result("0002", "下单客户端IP不在白名单中!");
         }
 
         Map<String, String> paramsMap = new HashMap<>(6);
@@ -89,7 +89,7 @@ public class OrderController {
         boolean isValue = SignUtil.verifySign(paramsMap, systemConfigService.getStringValue(ProjectConstant.PRIVATE_KEY));
         if (!isValue) {
             log.error("{}:该订单验签没通过!---{}", orderDTO.getPlatformOrderNo(), orderDTO.toString());
-            return new Result("00003", "该订单验签没通过!");
+            return new Result("0003", "该订单验签没通过!");
         }
 
         return orderService.pay(orderDTO);
