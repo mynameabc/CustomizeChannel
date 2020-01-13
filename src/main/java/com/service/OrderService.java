@@ -67,26 +67,26 @@ public class OrderService {
                 getBucket(ProjectConstant.GOODS_KEY_PAY_AMOUNT + orderDTO.getAmount()).get();
         if (null == goods) {
             log.warn("{}:不支持该金额", orderDTO.getPlatformOrderNo());
-            return new Result(false, "不支持该金额!");
+            return new Result("00004", "不支持该金额!");
         }
 
         //轮询选出账号
         List<Client> list = WebSocket.getWebSocketUsablePlaceOrderList();
         if (list.isEmpty()) {
             log.warn("{}:没有可用下单小号!", orderDTO.getPlatformOrderNo());
-            return new Result(false, "没有可用下单小号!");
+            return new Result("00005", "没有可用下单小号!");
         }
         Client client = roundRobin.getClient(list);
         if (null == client) {
             log.warn("{}:没有可用下单小号!", orderDTO.getPlatformOrderNo());
-            return new Result(false, "没有可用下单小号!");
+            return new Result("00005", "没有可用下单小号!");
         }
 
         //订单号是否存在
         PayOrder payOrder = this.getOrderForPlatformOrderNo(orderDTO.getPlatformOrderNo());
         if (null != payOrder) {
             log.warn("{}:该平台订单已存在, 请不要重复下单.", orderDTO.getPlatformOrderNo());
-            return new Result(false, "该平台订单已存在, 请不要重复下单!");
+            return new Result("00006", "该平台订单已存在, 请不要重复下单!");
         }
 
         OrderInfo orderInfo = new OrderInfo();
@@ -129,23 +129,23 @@ public class OrderService {
         switch (orderInfo.getClientOrderStatus()) {
             case OrderClientContant.SUCCESS:
                 log.info("{}:请求成功, 链接地址:{}", orderDTO.getPlatformOrderNo(), orderInfo.getPayUrl());
-                result = new Result(true, "请求成功!", orderInfo.getPayUrl());
+                result = new Result("00000", true, "请求成功!", orderInfo.getPayUrl());
                 break;
             case OrderClientContant.NO_QUANTITY_AVAILABLE_IN_STOCK:
                 log.warn("{}:该商品库存不足!", orderDTO.getAmount());
-                result = new Result(false, orderDTO.getAmount() + ":该商品库存不足!");
+                result = new Result("00007", orderDTO.getAmount() + ":该商品库存不足!");
                 break;
             case OrderClientContant.ACCOUNT_NUMBER_REACHES_THE_SUPPER_LIMIT:
                 log.warn("{}:小号下单次数达到上限!", orderDTO.getAmount());
-                result = new Result(false, "小号下单次数达到上限!");
+                result = new Result("00008", "小号下单次数达到上限!");
                 break;
             case OrderClientContant.UNCERTAIN:
                 log.warn("{}:客户端返回未知标识, 请和管理员联系!", orderDTO.getPlatformOrderNo());
-                result = new Result(false, "客户端返回未知标识, 请和管理员联系!");
+                result = new Result("00009", "客户端返回未知标识, 请和管理员联系!");
                 break;
             default:
                 log.warn("{}:请求超时!", orderDTO.getPlatformOrderNo());
-                result = new Result(false, "请求超时!");
+                result = new Result("00010", "请求超时!");
                 break;
         }
         return result;
@@ -396,34 +396,6 @@ public class OrderService {
         }
 
         return new Result(true, platformOrderNo + "通知收到!");
-    }
-
-    public String xiayou_notify_res(String resultJSONString) {
-
-        JSONObject jsonObject = JSONObject.parseObject(resultJSONString);
-
-        Map<String, String> parmasMap = new HashMap<>(6);
-        parmasMap.put("command", jsonObject.getString("command"));
-        parmasMap.put("channel", jsonObject.getString("channel"));
-        parmasMap.put("payType", jsonObject.getString("payType"));
-        parmasMap.put("platformOrderNo", jsonObject.getString("platformOrderNo"));
-        parmasMap.put("amount", jsonObject.getString("amount"));
-        parmasMap.put("result", jsonObject.getString("result"));
-        parmasMap.put("sign", jsonObject.getString("sign"));
-
-        String key = systemConfigService.getStringValue(ProjectConstant.PRIVATE_KEY);
-        boolean isValue = SignUtil.verifySign(parmasMap, key);
-        if (!isValue) {
-            log.info("结果错误:fail");
-            return "fail";
-        }
-
-        if ("OK".equals(jsonObject.getString("result"))) {
-            log.info("结果正确:success");
-            return "success";
-        }
-
-        return null;
     }
 
     /**

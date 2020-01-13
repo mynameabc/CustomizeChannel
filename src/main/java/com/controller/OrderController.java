@@ -8,6 +8,7 @@ import com.utils.SignUtil;
 import communal.Result;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,16 +30,26 @@ public class OrderController {
     private SystemConfigService systemConfigService;
 
     /**
-     * 设置支付地址
-     *
+     * 获取真实IP
      * @param request
      * @return
      */
-    @RequestMapping(value = "setPayURL", method = RequestMethod.POST)
-    public Result setPayUrl(HttpServletRequest request) {
-        String resultJSONString = request.getParameter("resultJSONString");
-        log.info("setPayUrl:" + resultJSONString);
-        return orderService.setPayUrl(resultJSONString);
+    private static String getIP(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if(StringUtils.isNotEmpty(ip) && !"unKnown".equalsIgnoreCase(ip)){
+            //多次反向代理后会有多个ip值，第一个ip才是真实ip
+            int index = ip.indexOf(",");
+            if(index != -1){
+                return ip.substring(0,index);
+            }else{
+                return ip;
+            }
+        }
+        ip = request.getHeader("X-Real-IP");
+        if(StringUtils.isNotEmpty(ip) && !"unKnown".equalsIgnoreCase(ip)){
+            return ip;
+        }
+        return request.getRemoteAddr();
     }
 
     /**
@@ -49,17 +60,21 @@ public class OrderController {
      * @throws IOException
      */
     @PostMapping(value = "pay")
-    public Result pay(@Valid @RequestBody OrderDTO orderDTO) {
+    public Result pay(@Valid @RequestBody OrderDTO orderDTO, HttpServletRequest request) {
 
         //下单开关
         if (!systemConfigService.isBoolean(ProjectConstant.PAY_ORDER_STATUS)) {
             log.warn("系统下单开关被关闭, 请和管理员联系!");
-            return new Result(false, "系统下单开关被关闭, 请和管理员联系!");
+            return new Result("00001", "系统下单开关被关闭, 请和管理员联系!");
         }
 
         //ip判断
-        systemConfigService.getStringValue(ProjectConstant.PAY_ORDER_IP_WHITE);
-
+        String clientIp = getIP(request);
+        String ip = systemConfigService.getStringValue(ProjectConstant.PAY_ORDER_IP_WHITE);
+        if (!clientIp.equals(ip)) {
+            log.warn("下单客户端IP不在白名单中!");
+            return new Result("00002", "下单客户端IP不在白名单中!");
+        }
 
         Map<String, String> paramsMap = new HashMap<>(6);
         {
@@ -72,12 +87,10 @@ public class OrderController {
         }
 
         log.info("接收到的订单参数:{}", orderDTO.toString());
-
-        String key = systemConfigService.getStringValue(ProjectConstant.PRIVATE_KEY);
-        boolean isValue = SignUtil.verifySign(paramsMap, key);
+        boolean isValue = SignUtil.verifySign(paramsMap, systemConfigService.getStringValue(ProjectConstant.PRIVATE_KEY));
         if (!isValue) {
             log.error("{}:该订单验签没通过!---{}", orderDTO.getPlatformOrderNo(), orderDTO.toString());
-            return new Result(false, "该订单验签没通过!");
+            return new Result("00003", "该订单验签没通过!");
         }
 
         return orderService.pay(orderDTO);
@@ -85,35 +98,33 @@ public class OrderController {
 
     /**
      * 通知成功回调
-     *
-     * @param resultJSONString
+     * @param resultJsonString
      */
-    @RequestMapping(value = "notify_res", method = RequestMethod.POST)
-    public Result notify_res(HttpServletRequest request, String resultJSONString) {
-
-        log.info("回调被启动!---值是:{}", resultJSONString);
-        String resultJSONString1 = request.getParameter("resultJSONString");
-        return orderService.notify(resultJSONString1);
+    @RequestMapping(value = "notifyRes", method = RequestMethod.POST)
+    public Result notifyRes(HttpServletRequest request, String resultJsonString) {
+        log.info("回调---参数:{}", resultJsonString);
+        String jsonString = request.getParameter("resultJSONString");
+        return orderService.notify(request.getParameter("resultJSONString"));
     }
 
     /**
      * 查询
-     *
      * @param orderDTO
      */
     @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
     public Result queryOrder(@RequestBody OrderDTO orderDTO) {
-        log.info("查询被启动!---值是:{}", orderDTO);
+        log.info("queryOrder查询---参数:{}", orderDTO);
         return orderService.queryOrder(orderDTO);
     }
 
     /**
-     * 模似下游回调函数
-     *
-     * @param
+     * 设置支付地址
+     * @param request
+     * @return
      */
-    @RequestMapping(value = "xiayou_notify_res", method = RequestMethod.POST)
-    public String xiayou_notify_res(@RequestBody String resultJSONString) {
-        return orderService.xiayou_notify_res(resultJSONString);
+    @RequestMapping(value = "setPayUrl", method = RequestMethod.POST)
+    public Result setPayUrl(HttpServletRequest request) {
+        log.info("setPayUrl:" + request.getParameter("jsonString"));
+        return orderService.setPayUrl(request.getParameter("jsonString"));
     }
 }

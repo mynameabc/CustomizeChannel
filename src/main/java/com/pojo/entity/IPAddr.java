@@ -1,23 +1,38 @@
 package com.pojo.entity;
 
-import lombok.Data;
+import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.*;
 
-@Data
-@Table(name = "ip_addr")
-public class IPAddr implements java.io.Serializable {
+public class IPAddr implements Serializable {
+    private Integer ipAddrId;
 
-    private static final long serialVersionUID = -7884092935032142351L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ip_addr_id")
-    private Long ipAddrId;
-
-    @Column(name = "url")
     private String url;
 
-    @Column(name = "create_time")
     private Date createTime;
+
+    private static final long serialVersionUID = 1L;
+
+    public Integer getIpAddrId() {
+        return ipAddrId;
+    }
+
+    public void setIpAddrId(Integer ipAddrId) {
+        this.ipAddrId = ipAddrId;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url == null ? null : url.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
 }
