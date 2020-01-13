@@ -34,7 +34,7 @@ public class OrderController {
      * @param request
      * @return
      */
-    private static String getIP(HttpServletRequest request) {
+    private static String getIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if(StringUtils.isNotEmpty(ip) && !"unKnown".equalsIgnoreCase(ip)){
             //多次反向代理后会有多个ip值，第一个ip才是真实ip
@@ -69,7 +69,7 @@ public class OrderController {
         }
 
         //ip判断
-        String clientIp = getIP(request);
+        String clientIp = getIp(request);
         String ip = systemConfigService.getStringValue(ProjectConstant.PAY_ORDER_IP_WHITE);
         if (!clientIp.equals(ip)) {
             log.warn("下单客户端IP不在白名单中!");
