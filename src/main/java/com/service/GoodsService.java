@@ -8,6 +8,8 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class GoodsService {
 
@@ -19,7 +21,8 @@ public class GoodsService {
 
     public void refresh() {
         RBucket<Goods> rBucket;
-        for (Goods goods : goodsMapper.selectAll()) {
+        List<Goods>goodList = goodsMapper.selectAll();
+        for (Goods goods : goodList) {
             rBucket = redissonClient.getBucket(ProjectConstant.GOODS_KEY_PAY_AMOUNT + goods.getPayAmount());
             rBucket.set(goods);
         }

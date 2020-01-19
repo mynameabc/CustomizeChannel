@@ -11,8 +11,5 @@
     <sql id="Base_Column_List">
         id, goods_id, url, pay_amount, create_time
     </sql>
-    <select id="getGoodsForOrderAmount" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
-        from goods where pay_amount = #{payAmount}
-    </select>
+
 </mapper>

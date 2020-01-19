@@ -1,10 +1,14 @@
 package com.controller;
 
 import com.service.TakeDeliveryGoodsService;
+import com.system.Response;
+import com.system.ResponseCode;
 import com.websokcet.WebSocket;
 import io.swagger.annotations.Api;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
@@ -44,6 +48,10 @@ public class TestController {
         log.info("info level");
         log.warn("warn level");
         log.error("error level");
+    }
+
+    public Response queryByParentId() {
+        return Response.getSUCCESS(ResponseCode.EXECUTE_SUCCESS, "");
     }
 }
 

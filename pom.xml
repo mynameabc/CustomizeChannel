@@ -78,7 +78,7 @@
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>2.1.0</version>
+            <version>1.3.2</version>
         </dependency>
         <!-- Spring Boot MyBatis Mapper通用包 -->
         <dependency>
@@ -90,7 +90,7 @@
                     <artifactId>mybatis-spring-boot-starter</artifactId>
                 </exclusion>
             </exclusions>
-            <version>2.1.5</version>
+            <version>1.1.4</version>
         </dependency>
         <dependency>
             <groupId>org.mybatis.generator</groupId>
@@ -110,6 +110,11 @@
             <version>1.1.9</version>
         </dependency>
         <dependency>
+            <groupId>com.spring4all</groupId>
+            <artifactId>swagger-spring-boot-starter</artifactId>
+            <version>1.8.0.RELEASE</version>
+        </dependency>
+        <dependency>
             <groupId>common</groupId>
             <artifactId>utils</artifactId>
             <version>1.0-SNAPSHOT</version>
@@ -117,6 +122,18 @@
                 <exclusion>
                     <artifactId>fst</artifactId>
                     <groupId>de.ruedigermoeller</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>springfox-swagger-ui:2.5.0</artifactId>
+                    <groupId>io.springfox</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>springfox-swagger2:2.4.0</artifactId>
+                    <groupId>io.springfox</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>springfox-swagger-common:2.4.0</artifactId>
+                    <groupId>io.springfox</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

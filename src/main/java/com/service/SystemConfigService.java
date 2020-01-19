@@ -2,6 +2,7 @@ package com.service;
 
 import com.auxiliary.constant.ProjectConstant;
 import com.pojo.entity.SystemConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import com.mapper.SystemConfigMapper;
@@ -15,6 +16,7 @@ import java.util.List;
 /**
  * @author Administrator
  */
+@Slf4j
 @Service
 public class SystemConfigService {
 
