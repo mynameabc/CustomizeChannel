@@ -24,13 +24,12 @@ spring:
       max-active: @datasource.max-active@
       min-evictable-idle-time-millis: 100000
       validation-query: select 1
-
 swagger:
-  enabled: true
+  enabled: @swagger.enabled@
   title: "Spring Boot 测试使用 Swagger2 构建RESTful API"
   contact:
     name: "LinShaoJun"
-    email: "508821881@qq.com"
+    email: "21654428@qq.com"
     url: "https://www.yunlingfly.cn"
   version: "1.0"
   description: "API 描述"
